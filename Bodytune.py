@@ -9,7 +9,7 @@ s = Server(sr=44100, nchnls=2, buffersize=512, duplex=1).boot()
 def pp(address, *args):
     print(address)
     print(args)
-    
+
 r = OscDataReceive(9001, "/PS", pp)
 
 """
