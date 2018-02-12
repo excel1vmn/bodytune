@@ -9,7 +9,7 @@
 #include <PulseSensorPlayground.h>
 
 char ssid[] = "huzzah";          // your network SSID (name)
-char pass[] = "hazzuhproj";                    // your network password
+char pass[] = "hazzuhosc";                    // your network password
 
 WiFiUDP Udp;                                // A UDP instance to let us send and receive packets over UDP
 const IPAddress outIp(192,168,0,101);        // remote IP of your computer
@@ -29,7 +29,7 @@ PulseSensorPlayground pulseSensor;
 
 void setup() {
     Serial.begin(115200);
-
+    analogReference(EXTERNAL);
     // Connect to WiFi network
     Serial.println();
     Serial.println();
@@ -80,13 +80,6 @@ void setup() {
 }
 
 void loop() {
-    OSCMessage msg("/PS");
-    msg.add("hello, osc.");
-    Udp.beginPacket(outIp, outPort);
-    msg.send(Udp);
-    Udp.endPacket();
-    msg.empty();
-
     if (pulseSensor.sawNewSample()) {
     /*
        Every so often, send the latest Sample.
@@ -97,7 +90,12 @@ void loop() {
       samplesUntilReport = SAMPLES_PER_SERIAL_SAMPLE;
 
       pulseSensor.outputSample();
-
+      OSCMessage msg("/PS");
+          msg.add(pulseSensor.getLatestSample());
+          Udp.beginPacket(outIp, outPort);
+          msg.send(Udp);
+          Udp.endPacket();
+          msg.empty();
       /*
          At about the beginning of every heartbeat,
          report the heart rate and inter-beat-interval.
@@ -106,6 +104,7 @@ void loop() {
         pulseSensor.outputBeat();
       }
     }
+
     /*******
       Here is a good place to add code that could take up
       to a millisecond or so to run.

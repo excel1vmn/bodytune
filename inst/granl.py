@@ -12,13 +12,13 @@ class Granl:
         self.maxT = maxt
         self.speed = speed
         self.snd = SndTable(path)
-        self.env = HannTable()
-        print(self.snd.getEnvelope(10))
+        self.env = HannTable(self.snd.getSize(all=False))
         self.pos = Phasor(self.snd.getRate(), 0, self.snd.getSize())
         self.dur = Noise(.001, .1)
-        self.g = Granulator(self.snd, self.env, self.numT, self.pos, self.dur, self.numG, mul=1)
+        self.g = Granulator(self.snd, self.env, self.numT, self.pos, self.dur, self.numG)
         self.filt = Biquadx(self.g, freq=filtfreq, q=res, type=filttype)
-        self.comp = Compress(self.filt, thresh=-20, ratio=4, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False, mul=0.8)
+        self.comp = Compress(self.filt, thresh=-30, ratio=8, risetime=0.01, falltime=0.10, 
+                             lookahead=5.00, knee=0, outputAmp=False)
         self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
         self.pat = Pattern(self.new, self.snd.getDur()/self.speed)
         self.pat2 = Pattern(self.grainShuffle, self.snd.getDur()/self.speed, arg=self.numG)
@@ -30,10 +30,10 @@ class Granl:
     def sig(self):
         return self.pan
 
-    def play(self):
+    def play(self, amp=0.8):
         self.pat.play()
         self.pat2.play()
-        self.pan.mul = 0.8
+        self.pan.mul = amp
 
     def stop(self):
         self.pat.stop()
@@ -43,16 +43,16 @@ class Granl:
     def new(self):
         self.wantsnew = True
         if self.wantsnew:
-            self.randomize(self.pos, self.dur, self.pan, self.minT, self.maxT)
+            self.randomize(self.pos, self.dur, self.minT, self.maxT, self.pan.pan)
             self.wantsnew = False
 
-    def randomize(self, position, length, pano, mint, maxt):
+    def randomize(self, position, length, mint, maxt, currentPan):
         self.g.pos = position * random.uniform(0.1,1)
         self.g.dur = length * random.uniform(mint, maxt)
-        self.pan.pan = random.uniform(0.2,0.8)
+        self.transition = SigTo(value=random.uniform(0.2,0.8), time=length, init=currentPan)
+        self.pan.pan = self.transition.value
 
     def grainShuffle(self, numg):
         if numg < 2:
             numg = 2
-
         self.g.grains = math.floor(random.uniform(numg/2, numg*4))
