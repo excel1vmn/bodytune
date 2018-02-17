@@ -52,23 +52,25 @@ class ManglerExp:
     def generate(self, segments=8, segdur=0.125):
         self.segments = segments
         self.segdur = segdur
+        
         start1 = random.uniform(0, self.dur1-segdur)
         stop1 = start1 + segdur
         self.tab.setSound(self.path1, start1, stop1)
+        
         start2 = random.uniform(0, self.dur2-segdur)
         stop2 = start2 + segdur
-        self.tab.setSound(self.path2, start2, stop2)
+        self.tab.append(self.path2, start2, stop2)
         for i in range(segments-1):
             i += 1
             if i % 2 == 0:
-                start1 = random.uniform(0, self.dur1-segdur)
+                start1 = random.uniform(0, self.dur1-segdur-0.004)
                 stop1 = start1 + segdur
                 self.tab.append(self.path1, 0.002, start1, stop1)
             else:
-                start2 = random.uniform(0, self.dur2-segdur)
+                start2 = random.uniform(0, self.dur2-segdur-0.004)
                 stop2 = start2 + segdur
                 self.tab.append(self.path2, 0.002, start2, stop2)
         newfreq = 1 / (segments * segdur)
-        self.amp.freq = newfreq * self.transp
-        self.osc.freq = newfreq * self.transp
-        self.end.time = 1 / (newfreq * self.transp)
+        self.amp.freq = newfreq * (self.transp*0.5)
+        self.osc.freq = newfreq * (self.transp*0.5)
+        self.end.time = 1 / (newfreq * (self.transp*0.5))
