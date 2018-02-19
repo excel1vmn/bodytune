@@ -73,6 +73,8 @@ i = ManglerExpMulti([path11,path12,path13,path14,path15], TAPS, TM, drive=2, tra
                     segdur=0.7, w1=20, w2=50, w3=30, poly=4, newyork=1)
 j = ManglerExpMulti([path2,path17,path9,path8], TAPS, TM, drive=0.5, transp=2, segments=TAPS,
                     segdur=TM/TAPS, w1=70, w2=50, w3=30, poly=4, newyork=1)
+
+i.play()
 '''
 for i in range(3):
     i+1
@@ -108,5 +110,5 @@ mix = Pan(a.sig()+f.sig()+g.sig()+h.sig()+i.sig()+j.sig(), mul=1)
 clip = Clip(mix, min=-1.00, max=1.00, mul=0.8).out()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-#s.play()
+#s.start()
 s.gui(locals())
