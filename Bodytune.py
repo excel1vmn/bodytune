@@ -11,29 +11,6 @@ import math
 
 s = Server(duplex=False).boot()
 
-#Variables globales
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-TM = .5625
-TAPS = 16
-BPM = 130
-BPS = 60/BPM
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-def pp(address, args):
-    print(address)
-    print(args)
-    BPM = args[1]
-
-r = OscDataReceive(9001, ["/FEED","/BPM"], pp)
-
-def checkBPM():
-    globalM.time = 60 / BPM
-    BPS = 60 / BPM
-
-globalM = Metro(time=BPS).play()
-globalC = Counter(globalM, min=0, max=10000, dir=0, mul=1)
-check = TrigFunc(globalM, checkBPM)
-
 #Liste de chemin vers divers son dans un dossier inclu dans l'architecture
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 path1 = 'sndsSB/plus.aif'
@@ -55,59 +32,89 @@ path16 = 'sndsSB/boaing.wav'
 path17 = 'snds/baseballmajeur_s.aif'
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
+#Variables globales
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+TAPS = 16
+BPM = 60
+BPS = 60/BPM
+TM = BPS
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
 #Instances des instruments
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-a = Granl(path4,[0.5,1,2,4],2,0.5,1.2,15,1,120,1)
-'''
-b = Granl(path2,[0.9,1,1.1],10,0.99,1.01,5,1,40,2)
-c = []
 d = Drums(path10, TAPS, BPS, 100, 50, 30, 1, 1)
-e = Drums(path1, TAPS, BPS, 20, 10, 50, 4, 0)
-'''
+e = Drums(path1, TAPS, BPS, 80, 10, 50, 2, 0)
 f = Pad(path6, 2, 1)
-g = Mangler(path12, TAPS, TM, transp=1, segments=9, segdur=0.55, w1=100, w2=50, w3=80, poly=3, newyork=1)
+f1 = Pad(path16, 2, 3)
+#g = Mangler(path12, TAPS, TM, transp=1, segments=9, segdur=0.55, w1=100, w2=50, w3=80, poly=3, newyork=1)
 #h = ManglerExp(path2, path14, TAPS, TM, drive=0.2, segments=12, segdur=0.25, w1=100, w2=0, w3=50, poly=2)
 #h = ManglerExp(path2, path8, TAPS, TM, drive=0.5, segments=TAPS, segdur=0.12, w1=100, w2=0, w3=50, poly=4)
 h = ManglerExp(path9, path10, TAPS, TM, drive=0.5, segments=24, segdur=0.12, w1=100, w2=0, w3=50, poly=4)
-i = ManglerExpMulti([path11,path12,path13,path14,path15], TAPS, TM, drive=2, transp=1, segments=8,
-                    segdur=0.7, w1=20, w2=50, w3=30, poly=4, newyork=1)
-j = ManglerExpMulti([path2,path17,path9,path8], TAPS, TM, drive=0.5, transp=2, segments=TAPS,
-                    segdur=TM/TAPS, w1=70, w2=50, w3=30, poly=4, newyork=1)
+i = ManglerExpMulti([path11,path12,path13,path14,path15], TAPS, TM, drive=2, transp=1, segments=8, segdur=0.7, w1=20, w2=50, w3=30, poly=4, newyork=1)
+j = ManglerExpMulti([path2,path17,path7,path10], TAPS, TM, drive=0.5, transp=1, segments=6, segdur=TM, w1=100, w2=5, w3=3, poly=2, newyork=1)
 
-i.play()
+'''[path2,path17,path7,path10]'''
+
 '''
-for i in range(3):
-    i+1
-    c.append(Pad(path3,1, 0.1*i))
+c = []
+for clist in range(3):
+    clist+1
+    c.append(Pad(path3,1, 0.1*clist))
     #c[i-1].play(0.3)
 '''
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-def allPlay():
-    a.play()
-    b.play()
-    for i in range(len(c)):
-        i+1
-        c[i-1].play(0.3)
-    d.play()
-    f.play()
-    g.play()
 
-def allStop():
-    a.stop()
-    b.stop()
-    c.stop()
-    d.stop()
-    f.stop()
-    g.stop()
+#Gestion du TEMPS
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+dur = 0
+def timeLine():
+    global dur
+    print(dur)
+    dur += 1
+    if dur == 1:
+        f.play()
+        f.fadeIn(1, 10)
+    elif dur == 9:
+        f.fadeOut(0, 0.1)
+    elif dur == 10:
+        f.fadeIn(0.8, 20)
+    elif dur == 15:
+        i.play()
+        i.fadeIn(0.9, 0.01)
+        e.play()
+    elif dur == 16:
+        e.stop()
+    elif dur == 25:
+        i.invState()
+        f1.play()
+        f1.fadeIn(0.8, 10)
+    elif dur == 40:
+        i.stop()
+        e.play()
+    elif dur == 50:
+        h.play()
 
+def pp(address, args):
+    print(address)
+    print(args)
+    BPM = args[1]
+
+r = OscDataReceive(9001, ["/FEED","/BPM"], pp)
+
+def checkBPM():
+    globalM.time = 60 / BPM
+    BPS = 60 / BPM
+
+globalM = Metro(time=BPS).play()
+checkBPM = TrigFunc(globalM, checkBPM)
+checkTime = TrigFunc(globalM, timeLine)
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Gestion des outputs
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-mix = Pan(a.sig()+f.sig()+g.sig()+h.sig()+i.sig()+j.sig(), mul=1)
-clip = Clip(mix, min=-1.00, max=1.00, mul=0.8).out()
+mix = Pan(d.sig()+e.sig()+f.sig()+f1.sig()+h.sig()+i.sig()+j.sig(), mul=1)
+clip = Clip(mix, min=-1.00, max=1.00, mul=0.5).out()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #s.start()

@@ -14,21 +14,27 @@ class Drums:
         self.comp = Compress(self.filt, thresh=-30, ratio=2, mul=0.6)
         self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
         self.trig = TrigFunc(self.m, self.newBeat)
-        
+
     def out(self):
         self.pan.out()
         return self
 
     def sig(self):
         return self.pan
-        
+
     def play(self):
         self.pan.mul = 0.8
         self.beat.play()
-        
+
     def stop(self):
         self.pan.mul = 0
         self.beat.stop()
-        
+
+    def fadeIn(self, value, time, init=0):
+        self.pan.mul = SigTo(value, time, init)
+
+    def fadeOut(self, value, time, init=0.8):
+        self.pan.mul = SigTo(value, time, init)
+
     def newBeat(self):
         self.beat.new()

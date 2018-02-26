@@ -18,31 +18,37 @@ class ManglerExp:
         self.filt = Biquadx(self.dist, 30, q=1, type=1)
         self.comp = Compress(self.filt+self.osc, thresh=-24, ratio=6, risetime=.01, falltime=.2, knee=0.3)
         self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
-        
+
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
         self.generate(segments, segdur)
-        
+
     def out(self):
         self.pan.out()
         return self
-        
+
     def sig(self):
         return self.pan
-        
+
     def play(self):
         self.pan.mul = 0.8
         self.end.play()
         self.beat.play()
-        
+
     def stop(self):
         self.pan.mul = 0
         self.end.stop()
         self.beat.play()
-        
+
+    def fadeIn(self, value, time, init=0):
+        self.pan.mul = SigTo(value, time, init)
+
+    def fadeOut(self, value, time, init=0.8):
+        self.pan.mul = SigTo(value, time, init)
+
     def new(self):
         self.wantsnew = True
-        
+
     def check(self):
         if self.count == 3:
             self.generate(self.segments, self.segdur)
@@ -52,11 +58,11 @@ class ManglerExp:
     def generate(self, segments=8, segdur=0.125):
         self.segments = segments
         self.segdur = segdur
-        
+
         start1 = random.uniform(0, self.dur1-segdur)
         stop1 = start1 + segdur
         self.tab.setSound(self.path1, start1, stop1)
-        
+
         start2 = random.uniform(0, self.dur2-segdur)
         stop2 = start2 + segdur
         self.tab.append(self.path2, start2, stop2)

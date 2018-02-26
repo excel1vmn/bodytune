@@ -17,31 +17,37 @@ class Mangler:
         self.lp = Biquadx(self.bp, freq=1000, q=2, type=0, stages=6, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
         self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
-        
+
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
         self.generate(segments, segdur)
-        
+
     def out(self):
         self.pan.out()
         return self
-        
+
     def sig(self):
         return self.pan
-        
+
     def play(self):
         self.pan.mul = 0.8
         self.end.play()
         self.beat.play()
-        
+
     def stop(self):
         self.pan.mul = 0
         self.end.stop()
         self.beat.play()
-        
+
+    def fadeIn(self, value, time, init=0):
+        self.pan.mul = SigTo(value, time, init)
+
+    def fadeOut(self, value, time, init=0.8):
+        self.pan.mul = SigTo(value, time, init)
+
     def new(self):
         self.wantsnew = True
-        
+
     def check(self):
         if self.count == 3:
             self.generate(self.segments, self.segdur)
