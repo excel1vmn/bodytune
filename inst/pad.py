@@ -12,9 +12,18 @@ class Pad:
         self.g = Granule(self.snd, self.env, dens=self.dns, pitch=self.pit, pos=self.pos, dur=0.1)
         self.filt = Biquad(self.g, freq=50, q=2, type=1)
         self.hp = ButHP(self.filt, freq=100)
-        self.comp = Compress(self.hp, thresh=-20, ratio=4, risetime=0.01, falltime=0.10,
-                             lookahead=5.00, knee=0, outputAmp=False, mul=1)
+        self.comp = Compress(self.hp, thresh=-20, ratio=4, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False, mul=1)
         self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
+
+    def randomize(self, min, max):
+        self.pit.min = random.uniform(min, 2*min)
+        self.pit.max = random.uniform(max, 2*max)
+
+    def sideChain(self, str=1, rate=0.5, dur=0.2):
+        self.mTrig = Metro(time=rate).play()
+        self.tEnv = TrigEnv(self.mTrig, self.env)
+        self.clip = Clip(self.tEnv, 1-str, 1)
+        self.pan.mul = self.clip
 
     def out(self):
         self.pan.out()

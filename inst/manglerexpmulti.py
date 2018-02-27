@@ -40,8 +40,8 @@ class ManglerExpMulti:
     def sig(self):
         return self.pan
 
-    def play(self):
-        self.pan.mul = 0.8
+    def play(self, amp=0.8):
+        self.pan.mul = amp
         self.end.play()
         self.beat.play()
 

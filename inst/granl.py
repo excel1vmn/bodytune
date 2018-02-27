@@ -17,8 +17,7 @@ class Granl:
         self.dur = Noise(.001, .1)
         self.g = Granulator(self.snd, self.env, self.numT, self.pos, self.dur, self.numG)
         self.filt = Biquad(self.g, freq=filtfreq, q=res, type=filttype)
-        self.comp = Compress(self.filt, thresh=-30, ratio=8, risetime=0.01, falltime=0.10,
-                             lookahead=5.00, knee=0, outputAmp=False)
+        self.comp = Compress(self.filt, thresh=-30, ratio=8, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False)
         self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
         self.pat = Pattern(self.new, self.snd.getDur()/self.speed)
         self.pat2 = Pattern(self.grainShuffle, self.snd.getDur()/self.speed, arg=self.numG)
