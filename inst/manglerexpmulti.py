@@ -5,19 +5,18 @@ class ManglerExpMulti:
     def __init__(self, paths, TAPS, TM, panval=0.5, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0):
         self.dur = []
         self.paths = paths
+        self.tm = TM
+        self.taps = TAPS
         self.pitch = transp
+        self.segments = segments
+        self.segdur = segdur
         self.isOn = 0
         for i in range(len(self.paths)):
             self.dur.append(sndinfo(self.paths[i])[1])
-            '''
-            print(self.paths[i])
-            print(len(self.dur))
-            print(self.dur)
-            '''
 
         self.env = CosTable([(0,0),(32,1),(8100,1),(8191,0)])
         self.tab = SndTable(initchnls=2)
-        self.beat = Beat(TM, TAPS, w1, w2, w3, poly)
+        self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
         self.transp = self.tab.getRate()
         self.amp = OscTrig(self.env, self.beat, self.tab.getRate())
         self.osc = OscTrig(self.tab, self.beat, self.tab.getRate(), interp=4, mul=2)
@@ -25,13 +24,14 @@ class ManglerExpMulti:
         self.dist = Disto(self.osc, drive=drive*self.fol, slope=2)
         self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
         self.bp = Biquad(self.dist, freq=2000, q=4, type=2)
-        self.lp = Biquadx(self.bp, freq=1000, q=2, type=0, stages=6, mul=newyork)
+        self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
         self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
 
         self.count = 0
-        self.end = TrigFunc(self.beat, self.check)
-        self.generate(segments, segdur)
+        self.end = TrigFunc(self.beat, self.check).stop()
+        self.generate(self.segments, self.segdur)
+        self.stop()
 
     def out(self):
         self.pan.out()
@@ -42,19 +42,41 @@ class ManglerExpMulti:
 
     def play(self, amp=0.8):
         self.pan.mul = amp
+        self.amp.play()
+        self.osc.play()
+        self.fol.play()
+        self.dist.play()
+        self.filt.play()
+        self.bp.play()
+        self.lp.play()
+        self.comp.play()
+        self.pan.play()
         self.end.play()
-        self.beat.play()
 
     def stop(self):
         self.pan.mul = 0
+        self.amp.stop()
+        self.osc.stop()
+        self.fol.stop()
+        self.dist.stop()
+        self.filt.stop()
+        self.bp.stop()
+        self.lp.stop()
+        self.comp.stop()
+        self.pan.stop()
         self.end.stop()
-        self.beat.play()
 
     def fadeIn(self, value, time, init=0):
         self.pan.mul = SigTo(value, time, init)
 
     def fadeOut(self, value, time, init=0.8):
         self.pan.mul = SigTo(value, time, init)
+
+    def sideChain(self, str=1, dur=0.2):
+        self.mTrig = Metro(time=self.tm).play()
+        self.tEnv = TrigEnv(self.mTrig, self.env)
+        self.clip = Clip(self.tEnv, self.pan.mul-str, 1)
+        self.pan.mul = self.clip
 
     def new(self):
         self.wantsnew = True
@@ -73,23 +95,23 @@ class ManglerExpMulti:
             self.beat.play()
             self.isOn = 0
 
-
-    def generate(self, segments=8, segdur=0.125):
-        self.segments = segments
-        self.segdur = segdur
-        start = random.uniform(0, self.dur[0]-segdur-0.004)
+    def generate(self, segments, segdur):
+        start = random.uniform(0, self.dur[0]-segdur-0.008)
         stop = start + segdur
         self.tab.setSound(self.paths[0], start, stop)
         for l in range(segments-1):
             if l >= len(self.dur):
                 l = 0
             else:
-                start = random.uniform(0, self.dur[l]-segdur-0.004)
+                start = random.uniform(0, self.dur[l]-segdur-0.008)
                 stop = start + segdur
-                self.tab.append(self.paths[l], 0.002, start, stop)
+                self.tab.append(self.paths[l], 0.008, start, stop)
                 l += 1
 
         newfreq = 1 / (segments * segdur)
         self.amp.freq = (newfreq * self.transp) * self.pitch
         self.osc.freq = (newfreq * self.transp) * self.pitch
         self.end.time = 1 / (newfreq * (self.transp * self.pitch))
+
+    def updateBPM(self, BPS):
+        self.tm = BPS

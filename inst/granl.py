@@ -13,14 +13,14 @@ class Granl:
         self.speed = speed
         self.snd = SndTable(path)
         self.env = HannTable(self.snd.getSize(all=False))
-        self.pos = Phasor(self.snd.getRate(), 0, self.snd.getSize())
-        self.dur = Noise(.001, .1)
-        self.g = Granulator(self.snd, self.env, self.numT, self.pos, self.dur, self.numG)
-        self.filt = Biquad(self.g, freq=filtfreq, q=res, type=filttype)
-        self.comp = Compress(self.filt, thresh=-30, ratio=8, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False)
-        self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
-        self.pat = Pattern(self.new, self.snd.getDur()/self.speed)
-        self.pat2 = Pattern(self.grainShuffle, self.snd.getDur()/self.speed, arg=self.numG)
+        self.pos = Phasor(self.snd.getRate(), 0, self.snd.getSize()).stop()
+        self.dur = Noise(.001, .1).stop()
+        self.g = Granulator(self.snd, self.env, self.numT, self.pos, self.dur, self.numG).stop()
+        self.filt = Biquad(self.g, freq=filtfreq, q=res, type=filttype).stop()
+        self.comp = Compress(self.filt, thresh=-30, ratio=8, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False).stop()
+        self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0).stop()
+        self.pat = Pattern(self.new, self.snd.getDur()/self.speed).stop()
+        self.pat2 = Pattern(self.grainShuffle, self.snd.getDur()/self.speed, arg=self.numG).stop()
 
     def out(self):
         self.pan.out()
@@ -30,14 +30,26 @@ class Granl:
         return self.pan
 
     def play(self, amp=0.8):
+        self.pan.mul = amp
+        self.pos.play()
+        self.dur.play()
+        self.g.play()
+        self.filt.play()
+        self.comp.play()
+        self.pan.play()
         self.pat.play()
         self.pat2.play()
-        self.pan.mul = amp
 
     def stop(self):
-        self.pat.stop()
-        self.pat2.stop()
         self.pan.mul = 0
+        self.pos.stop()
+        self.dur.stop()
+        self.g.stop()
+        self.filt.stop()
+        self.comp.stop()
+        self.pan.stop()
+        self.pat.stop()
+        self.pat2.stop()   
 
     def fadeIn(self, value, time, init=0):
         self.pan.mul = SigTo(value, time, init)

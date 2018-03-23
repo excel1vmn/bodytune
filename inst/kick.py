@@ -17,11 +17,9 @@ class Kick:
 
     def play(self):
         self.pan.mul = 0.8
-        self.beat.play()
 
     def stop(self):
         self.pan.mul = 0
-        self.beat.stop()
 
     def fadeIn(self, value, time, init=0):
         self.pan.mul = SigTo(value, time, init)

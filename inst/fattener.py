@@ -10,6 +10,7 @@ class Fattener:
         self.dist = Disto(self.input, drive=self.speed, slope=self.fol, mul=mul)
         self.comp = Compress(self.dist, thresh=-20, ratio=4, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False, mul=self.fol)
         self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
+        self.stop()
 
     def out(self):
         self.pan.out()
@@ -20,9 +21,19 @@ class Fattener:
 
     def play(self):
         self.pan.mul = self.mul
+        self.fol.play()
+        self.lfo.play()
+        self.dist.play()
+        self.comp.play()
+        self.pan.play()
 
     def stop(self):
         self.pan.mul = 0
+        self.fol.stop()
+        self.lfo.stop()
+        self.dist.stop()
+        self.comp.stop()
+        self.pan.stop()
 
     def fadeIn(self, value, time, init=0):
         self.pan.mul = SigTo(value, time, init)

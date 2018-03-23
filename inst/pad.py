@@ -2,28 +2,35 @@ from pyo import *
 import random
 
 class Pad:
-    def __init__(self, path, dns=1, pitch=1):
-        self.snd = SndTable(path)
+    def __init__(self, path, TM, dns=1, transp=1):
+        self.path = path
+        self.tm = TM
+        self.transp = transp
+        self.density = dns
+        self.snd = SndTable(self.path)
         self.end = self.snd.getSize(all=False) - 48000
         self.env = HannTable()
         self.pos = Randi(min=0, max=1, freq=[0.25, 0.3]*10, mul=self.end)
-        self.dns = Randi(min=10*dns, max=50*dns, freq=.1)
-        self.pit = Randi(min=0.99*pitch, max=1.01*pitch, freq=100)
+        self.dns = Randi(min=10*self.density, max=50*self.density, freq=self.tm)
+        self.pit = Randi(min=0.99*self.transp, max=1.01*self.transp, freq=100)
         self.g = Granule(self.snd, self.env, dens=self.dns, pitch=self.pit, pos=self.pos, dur=0.1)
-        self.filt = Biquad(self.g, freq=50, q=2, type=1)
-        self.hp = ButHP(self.filt, freq=100)
-        self.comp = Compress(self.hp, thresh=-20, ratio=4, risetime=0.01, falltime=0.10, lookahead=5.00, knee=0, outputAmp=False, mul=1)
-        self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=0)
+        self.hp = ButHP(self.g, freq=100, mul=0.7)
+        self.pan = Pan(self.hp, outs=2, pan=0.50, spread=0.50, mul=0)
+        self.stop()
 
     def randomize(self, min, max):
         self.pit.min = random.uniform(min, 2*min)
         self.pit.max = random.uniform(max, 2*max)
 
-    def sideChain(self, str=1, rate=0.5, dur=0.2):
-        self.mTrig = Metro(time=rate).play()
+    def sideChain(self, str=1, dur=0.2, mul=1):
+        self.mTrig = Metro(time=self.tm*mul).play()
         self.tEnv = TrigEnv(self.mTrig, self.env)
-        self.clip = Clip(self.tEnv, 1-str, 1)
+        self.clip = Clip(self.tEnv, self.pan.mul-str, 1)
         self.pan.mul = self.clip
+
+    def stopChain(self):
+        self.mTrig.stop()
+        self.tEnv.stop()
 
     def out(self):
         self.pan.out()
@@ -33,9 +40,21 @@ class Pad:
         return self.pan
 
     def play(self, amp=0.8):
+        self.pos.play()
+        self.dns.play()
+        self.pit.play()
+        self.g.play()
+        self.hp.play()
+        self.pan.play()
         self.pan.mul = amp
 
     def stop(self):
+        self.pos.stop()
+        self.dns.stop()
+        self.pit.stop()
+        self.g.stop()
+        self.hp.stop()
+        self.pan.stop()
         self.pan.mul = 0
 
     def fadeIn(self, value, time, init=0):
@@ -43,3 +62,6 @@ class Pad:
 
     def fadeOut(self, value, time, init=0.8):
         self.pan.mul = SigTo(value, time, init)
+
+    def updateBPM(self, BPS):
+        self.tm = BPS
