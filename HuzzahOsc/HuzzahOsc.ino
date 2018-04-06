@@ -8,8 +8,8 @@
 #define USE_ARDUINO_INTERRUPTS false
 #include <PulseSensorPlayground.h>
 
-char ssid[] = "huzzah";          // your network SSID (name) //huzzah
-char pass[] = "hazzuhosc";                    // your network password //hazzuhosc
+char ssid[] = "lel";          // your network SSID (name) //huzzah
+char pass[] = "majorlel";                    // your network password //hazzuhosc
 
 WiFiUDP Udp;                                // A UDP instance to let us send and receive packets over UDP
 const IPAddress outIp(192,168,43,162);        // remote IP of your computer
@@ -77,7 +77,7 @@ void loop() {
       samplesUntilReport = SAMPLES_PER_SERIAL_SAMPLE;
 
       pulseSensor.outputSample();
-      OSCMessage msg("/FEED");
+      OSCMessage msg("/FLUX");
           msg.add(pulseSensor.getLatestSample());
           Udp.beginPacket(outIp, outPort);
           msg.send(Udp);

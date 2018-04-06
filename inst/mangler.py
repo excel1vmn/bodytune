@@ -12,7 +12,7 @@ class Mangler:
         self.tab = SndTable(initchnls=2)
         self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
         self.amp = OscTrig(self.env, self.beat, self.tab.getRate()*transp)
-        self.osc = OscTrig(self.tab, self.beat, self.tab.getRate()*transp, interp=4, mul=4)
+        self.osc = OscTrig(self.tab, self.beat, self.tab.getRate()*transp, interp=4, mul=2)
         self.fol = Follower(self.osc, freq=20)
         self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
         self.bp = Biquad(self.osc, freq=2000, q=4, type=2)
@@ -32,7 +32,7 @@ class Mangler:
     def sig(self):
         return self.pan
 
-    def play(self, amp=0.8):
+    def play(self, amp=0.8, gen=True):
         self.pan.mul = amp
         self.amp.play()
         self.osc.play()
@@ -42,7 +42,8 @@ class Mangler:
         self.lp.play()
         self.comp.play()
         self.pan.play()
-        self.end.play()
+        if gen == True:
+            self.end.play()
 
     def stop(self):
         self.pan.mul = 0
@@ -80,7 +81,7 @@ class Mangler:
         for i in range(segments-1):
             start = random.uniform(0, self.dur-segdur)
             stop = start + segdur
-            self.tab.append(self.path, 0.008, start, stop)
+            self.tab.append(self.path, 0.1, start, stop)
         newfreq = 1 / (segments * segdur)
         self.amp.freq = newfreq * self.transp
         self.osc.freq = newfreq * self.transp

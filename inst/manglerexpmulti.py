@@ -2,7 +2,7 @@ from pyo import *
 import random
 
 class ManglerExpMulti:
-    def __init__(self, paths, TAPS, TM, panval=0.5, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0):
+    def __init__(self, paths, TAPS, TM, panval=0.5, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
         self.dur = []
         self.paths = paths
         self.tm = TM
@@ -14,7 +14,7 @@ class ManglerExpMulti:
         for i in range(len(self.paths)):
             self.dur.append(sndinfo(self.paths[i])[1])
 
-        self.env = CosTable([(0,0),(32,1),(8100,1),(8191,0)])
+        self.env = CosTable(envTable)
         self.tab = SndTable(initchnls=2)
         self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
         self.transp = self.tab.getRate()
@@ -40,7 +40,7 @@ class ManglerExpMulti:
     def sig(self):
         return self.pan
 
-    def play(self, amp=0.8):
+    def play(self, amp=0.8, gen=True):
         self.pan.mul = amp
         self.amp.play()
         self.osc.play()
@@ -51,7 +51,8 @@ class ManglerExpMulti:
         self.lp.play()
         self.comp.play()
         self.pan.play()
-        self.end.play()
+        if gen == True:
+            self.end.play()
 
     def stop(self):
         self.pan.mul = 0
@@ -96,16 +97,16 @@ class ManglerExpMulti:
             self.isOn = 0
 
     def generate(self, segments, segdur):
-        start = random.uniform(0, self.dur[0]-segdur-0.008)
+        start = random.uniform(0, self.dur[0]-segdur-0.01)
         stop = start + segdur
         self.tab.setSound(self.paths[0], start, stop)
         for l in range(segments-1):
             if l >= len(self.dur):
                 l = 0
             else:
-                start = random.uniform(0, self.dur[l]-segdur-0.008)
+                start = random.uniform(0, self.dur[l]-segdur-0.01)
                 stop = start + segdur
-                self.tab.append(self.paths[l], 0.008, start, stop)
+                self.tab.append(self.paths[l], 0.01, start, stop)
                 l += 1
 
         newfreq = 1 / (segments * segdur)

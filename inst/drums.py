@@ -3,12 +3,12 @@ import random
 import math
 
 class Drums:
-    def __init__(self, path, TAPS, TM, w1=90, w2=50, w3=15, transp=1, freq=50, type=1, sMul=1):
+    def __init__(self, path, TAPS, TM, w1=90, w2=50, w3=15, transp=1, freq=50, type=1, sMul=1, envTable=[(0,0),(100,1),(8000,0.7),(8050,0),(8190,0)]):
         self.tm = TM
         self.taps = TAPS
         self.transp = transp
         self.freq = freq
-        self.t = CosTable([(0,0),(100,1),(8000,0.7),(8050,0),(8190,0)])
+        self.t = CosTable(envTable)
         self.tab = SndTable(path)
         self.beat = Beat(time=self.tm, taps=self.taps, w1=w1, w2=w2, w3=w3, poly=1)
         self.tr2 = TrigEnv(self.beat, table=self.t, dur=self.beat['dur'], mul=self.beat['amp'])

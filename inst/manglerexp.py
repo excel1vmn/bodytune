@@ -33,7 +33,7 @@ class ManglerExp:
     def sig(self):
         return self.pan
 
-    def play(self, amp=0.8):
+    def play(self, amp=0.8, gen=True):
         self.pan.mul = amp
         self.amp.play()
         self.osc.play()
@@ -42,7 +42,8 @@ class ManglerExp:
         self.filt.play()
         self.comp.play()
         self.pan.play()
-        self.end.play()
+        if gen == True:
+            self.end.play()
 
     def stop(self):
         self.pan.mul = 0
