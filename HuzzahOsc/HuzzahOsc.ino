@@ -77,19 +77,21 @@ void loop() {
       samplesUntilReport = SAMPLES_PER_SERIAL_SAMPLE;
 
       pulseSensor.outputSample();
-      OSCMessage msg("/FLUX");
+      OSCMessage msg("/BPM");
           msg.add(pulseSensor.getLatestSample());
+          msg.add(pulseSensor.getBeatsPerMinute()); 
           Udp.beginPacket(outIp, outPort);
           msg.send(Udp);
           Udp.endPacket();
           msg.empty();
-
+      /*
       OSCMessage msg2("/BPM");
           msg2.add(pulseSensor.getBeatsPerMinute()); 
           Udp.beginPacket(outIp, outPort);
           msg2.send(Udp);
           Udp.endPacket();
           msg2.empty();
+      */
       /*
          At about the beginning of every heartbeat,
          report the heart rate and inter-beat-interval.

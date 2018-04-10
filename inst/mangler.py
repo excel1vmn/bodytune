@@ -2,7 +2,7 @@ from pyo import *
 import random
 
 class Mangler:
-    def __init__(self, path, TAPS, TM, panval=0.5, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0):
+    def __init__(self, path, TAPS, TM, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0):
         self.path = path
         self.tm = TM
         self.taps = TAPS
@@ -10,15 +10,21 @@ class Mangler:
         self.dur = sndinfo(self.path)[1]
         self.env = HannTable()
         self.tab = SndTable(initchnls=2)
+        #self.tab = [SndTable(initchnls=2), SndTable(initchnls=2)]
+        self.playing = 0
         self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
         self.amp = OscTrig(self.env, self.beat, self.tab.getRate()*transp)
         self.osc = OscTrig(self.tab, self.beat, self.tab.getRate()*transp, interp=4, mul=2)
+        self.amp2 = OscTrig(self.env, self.beat, self.tab.getRate()*transp)
+        self.osc2 = OscTrig(self.tab, self.beat, self.tab.getRate()*transp, interp=4, mul=2)
         self.fol = Follower(self.osc, freq=20)
         self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
-        self.bp = Biquad(self.osc, freq=2000, q=4, type=2)
+        self.bp = ButBP(self.osc, freq=2000, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
-        self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
+        self.fadeEnv = Fader(fadein=0.5, fadeout=0.5, mul=.5)
+        self.fadeEnv.setExp(1)
+        self.pan = Pan(self.comp, outs=2, mul=self.fadeEnv)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
@@ -58,10 +64,18 @@ class Mangler:
         self.end.stop()
 
     def fadeIn(self, value, time, init=0):
-        self.pan.mul = SigTo(value, time, init)
+        #self.pan.mul = SigTo(value, time, init)
+        self.fadeEnv.setFadein(time)
+        self.fadeEnv.mul = value
+        self.pan.mul = self.fadeEnv.play()
+        #self.pan.mul = Fader(fadein=time, mul=value).play()
 
     def fadeOut(self, value, time, init=0.8):
-        self.pan.mul = SigTo(value, time, init)
+        #self.pan.mul = SigTo(value, time, init)
+        self.fadeEnv.setFadeout(time)
+        self.fadeEnv.mul = value
+        self.fadeEnv.stop()
+        #self.pan.mul = Fader(fadeout=time, mul=value).stop()
 
     def new(self):
         self.wantsnew = True

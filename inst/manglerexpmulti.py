@@ -23,10 +23,12 @@ class ManglerExpMulti:
         self.fol = Follower(self.osc, freq=20)
         self.dist = Disto(self.osc, drive=drive*self.fol, slope=2)
         self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
-        self.bp = Biquad(self.dist, freq=2000, q=4, type=2)
+        self.bp = ButBP(self.dist, freq=2000, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
-        self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.comp, outs=2, pan=panval, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check).stop()
@@ -41,7 +43,7 @@ class ManglerExpMulti:
         return self.pan
 
     def play(self, amp=0.8, gen=True):
-        self.pan.mul = amp
+        self.panMul.value = amp
         self.amp.play()
         self.osc.play()
         self.fol.play()
@@ -50,12 +52,14 @@ class ManglerExpMulti:
         self.bp.play()
         self.lp.play()
         self.comp.play()
+        self.panMul.play()
+        self.panPow.play()
         self.pan.play()
         if gen == True:
             self.end.play()
 
     def stop(self):
-        self.pan.mul = 0
+        self.panMul.value = 0
         self.amp.stop()
         self.osc.stop()
         self.fol.stop()
@@ -64,11 +68,14 @@ class ManglerExpMulti:
         self.bp.stop()
         self.lp.stop()
         self.comp.stop()
+        self.panMul.stop()
+        self.panPow.stop()
         self.pan.stop()
         self.end.stop()
 
-    def fadeIn(self, value, time, init=0):
-        self.pan.mul = SigTo(value, time, init)
+    def fadeIn(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value
 
     def fadeOut(self, value, time, init=0.8):
         self.pan.mul = SigTo(value, time, init)

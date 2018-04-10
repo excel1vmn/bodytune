@@ -48,7 +48,7 @@ lf3 = LFO(freq=lf, sharp=lf2, type=7, mul=500, add=700)
 TAPS = 16
 BPM = 85
 BPS = Sig(60/BPM)
-FLUX = SigTo(lf3, 0.2)
+FLUX = SigTo(1000, 0.2)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Instances des instruments
@@ -63,7 +63,7 @@ kickL = Drums(path101, TAPS, BPS, 80, 10, 50, 0.7, freq=150, type=0)
 granuleStrecth = Pad(path6, BPS, 2, 1, FLUX)
 f1 = Pad(path16, BPS, 2, 3)
 f2 = Pad(path7, BPS, 2, 2)
-grosNoise = Pad(path9, BPS, 2 ,2)
+grosNoise = Pad(path9, BPS, 2 ,2) #ajout modulation du sidechain
 #g = Mangler(path12, TAPS, BPS, transp=1, segments=9, segdur=0.55, w1=100, w2=50, w3=80, poly=3, newyork=1)
 
 #Tonale
@@ -74,7 +74,7 @@ douxPad = Drums(path5, TAPS, BPS, w1=100, w2=0, w3=0)
 lowPad = Mangler(path5, TAPS, BPS, transp=0.2, segments=5, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
 stutterPad = ManglerExpMulti([path18,path19], TAPS, BPS, drive=3, transp=1.8, segments=3, segdur=0.45, w1=80, w2=50, w3=70, poly=4, newyork=1)
 arpCrazy = Mangler(path4, TAPS, BPS*0.25, segments=5, segdur=0.165, w1=100, w2=20, w3=70, poly=2)
-kickCrazy = Mangler(path10, TAPS, BPS*0.25, segments=5, segdur=0.165, w1=100, w2=20, w3=70, poly=2)
+kickCrazy = Mangler(path10, TAPS, BPS*0.25, segments=7, segdur=0.165, w1=100, w2=20, w3=70, poly=4)
 
 
 granuleAccu = Drums(path9, TAPS, BPS, w1=80, w2=50, w3=60, transp=FLUX, sMul=8, envTable=[(0,0),(10,1),(8180,1),(8190,0)])
@@ -113,7 +113,7 @@ def timeLine():
     print(dur)
     dur += 1
     if dur == 1:
-        granuleStrecth.play(0)
+        granuleStrecth.play(0)# fade in log
         granuleStrecth.fadeIn(1, 40)
     elif dur == 13:
         douxPadGranule.play(0, gen=False)
@@ -129,7 +129,7 @@ def timeLine():
         douxPadGranule.fadeOut(0.2, 25)
     elif dur == 70:
         granuleStrecth.fadeOut(0, 2, 0.75)
-        stutterPad.play(0)
+        stutterPad.play(0)#ajouter impacte
         stutterPad.fadeIn(0.7,1)
     elif dur == 75:
         granuleStrecth.stop()
@@ -142,18 +142,18 @@ def timeLine():
     elif dur == 110:
         grosNoise.fadeOut(0,0.2)
         stutterPad.generate(4,0.015)
-        lowPad.play()
+        lowPad.play(gen=False)
     elif dur == 111:
         grosNoise.stop()
     elif dur == 120:
         lowPad.play(0, gen=False)
-        lowPad.fadeIn(0.8,5)
+        lowPad.fadeIn(0.8,5)#ajouter impacte
         stutterPad.fadeIn(0.7,10)
     elif dur == 130:
         lowPad.stop()
         stutterPad.stop()
     elif dur == 135:
-        kickL.play(0.6)
+        kickL.play(0.2)
         lowPad.play(gen=False)
         grosNoise.play()
         grosNoise.sideChain(1)
@@ -161,9 +161,10 @@ def timeLine():
         grosNoise.randomize(.1,10)
         f2.play(0)
         f2.fadeIn(0.7,10)
+        kickL.fadeIn(0.8,10,0.3)
     elif dur == 170:
-        f2.randomize(0.2,1.2)
-        kickH.play(0.1)
+        f2.randomize(0.2,1.2)#coupure nette
+        kickH.play(0)
         kickH.fadeIn(0.8,30)
         grosNoise.fadeIn(1.2,15)
     elif dur == 200:
@@ -174,7 +175,7 @@ def timeLine():
         lowPad.fadeOut(0.1,1)
         douxPadGranule.play(0, gen=False)
         douxPadGranule.fadeIn(0.4,30)
-        douxPadGranule.generate(2,0.5)
+        douxPadGranule.generate(2,0.5)#accumuler partour dans la sphère
     elif dur == 205:
         grosNoise.stop()
         lowPad.stop()
@@ -190,12 +191,11 @@ def timeLine():
 
 
 def pp(address, *args):
-    global BPM, FLUX
-    #print(address)
-    BPM = args[0]
-    FLUX.value = args[1]
-    print(BPM)
-    print(FLUX.value)
+    global FLUX, BPM
+    BPM = args[1]
+    FLUX.value = args[0]
+    #print(BPM)
+    #print(FLUX.value)
 
 r = OscDataReceive(9001, "/BPM", pp)
 sender = OscDataSend("iffffff", 18032, '/spat/serv')
@@ -220,19 +220,20 @@ mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig
 
 '''
 1. (i) The source number starting at 0.
-2. (f) The azimuth value between 0 and pi*2. 3. (f) The elevation value between 0 and pi.
+2. (f) The azimuth value between 0 and pi*2.
+3. (f) The elevation value between 0 and pi.
 - 0 = top vertex of the dome.
 - pi/2 = center of the sphere (the height of the lower circle of a half-sphere). - pi = lower vertex of the dome (under the floor).
 4. (f) The span in azimuth between 0 and 2.
 5. (f) The span in elevation between 0 and 0.5.
 '''
-msg = [0, 0, pi, 1, .25, 0, 0]
+msg = [0, 0, pi/2, 1, .25, 0, 0]
 sender.send(msg)
-msg = [2, 0, pi, 1, 0, 0, 0]
+msg = [2, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
 msg = [4, 0, pi/2, 1, .5, 0, 0]
 sender.send(msg)
-msg = [6, 0, pi, 1, 0, 0, 0]
+msg = [6, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
 
 #s.start()
