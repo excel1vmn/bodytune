@@ -16,7 +16,9 @@ class Pad:
         self.pit = Randi(min=0.99*self.transp, max=1.01*self.transp, freq=100)
         self.g = Granule(self.snd, self.env, dens=self.dns, pitch=self.pit, pos=self.pos, dur=0.1)
         self.hp = ButHP(self.g, freq=self.freq, mul=0.7)
-        self.pan = Pan(self.hp, outs=2, pan=0.50, spread=0.50, mul=0)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.hp, outs=2, mul=self.panPow)
         self.stop()
 
     def randomize(self, min, max):
@@ -41,28 +43,27 @@ class Pad:
         return self.pan
 
     def play(self, amp=0.8):
+        self.panMul.value = amp
         self.pos.play()
         self.dns.play()
         self.pit.play()
         self.g.play()
         self.hp.play()
+        self.panMul.play()
+        self.panPow.play()
         self.pan.play()
-        self.pan.mul = amp
 
     def stop(self):
+        self.panMul.value = 0
         self.pos.stop()
         self.dns.stop()
         self.pit.stop()
         self.g.stop()
         self.hp.stop()
+        self.panMul.stop()
+        self.panPow.stop()
         self.pan.stop()
-        self.pan.mul = 0
 
-    def fadeIn(self, value, time, init=0):
-        self.pan.mul = SigTo(value, time, init)
-
-    def fadeOut(self, value, time, init=0.8):
-        self.pan.mul = SigTo(value, time, init)
-
-    def updateBPM(self, BPS):
-        self.tm = BPS
+    def fade(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value

@@ -2,7 +2,7 @@ from pyo import *
 import random
 
 class ManglerExpMulti:
-    def __init__(self, paths, TAPS, TM, panval=0.5, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
+    def __init__(self, paths, TAPS, TM, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
         self.dur = []
         self.paths = paths
         self.tm = TM
@@ -15,20 +15,30 @@ class ManglerExpMulti:
             self.dur.append(sndinfo(self.paths[i])[1])
 
         self.env = CosTable(envTable)
-        self.tab = SndTable(initchnls=2)
+        #self.tab = SndTable(initchnls=2)
+        self.whatTab = 0
+        self.tab = [SndTable(initchnls=2), SndTable(initchnls=2)]
         self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
-        self.transp = self.tab.getRate()
+        self.transp = self.tab[self.whatTab].getRate()
+        '''
         self.amp = OscTrig(self.env, self.beat, self.tab.getRate())
         self.osc = OscTrig(self.tab, self.beat, self.tab.getRate(), interp=4, mul=2)
-        self.fol = Follower(self.osc, freq=20)
-        self.dist = Disto(self.osc, drive=drive*self.fol, slope=2)
-        self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
+        '''
+        self.crossFade1 = SigTo(0, time=0.1)
+        self.crossFade2 = SigTo(0, time=0.1)
+        self.amp1 = OscTrig(self.env, self.beat, self.tab[self.whatTab].getRate()*transp)
+        self.osc1 = OscTrig(self.tab[self.whatTab], self.beat, self.tab[self.whatTab].getRate()*transp, interp=4, mul=self.crossFade1)
+        self.amp2 = OscTrig(self.env, self.beat, self.tab[self.whatTab].getRate()*transp)
+        self.osc2 = OscTrig(self.tab[self.whatTab], self.beat, self.tab[self.whatTab].getRate()*transp, interp=4, mul=self.crossFade2)
+        self.fol = Follower(self.osc1+self.osc2, freq=20)
+        self.dist = Disto(self.osc1+self.osc2, drive=drive*self.fol, slope=2)
+        self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
         self.bp = ButBP(self.dist, freq=2000, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
-        self.pan = Pan(self.comp, outs=2, pan=panval, mul=self.panPow)
+        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check).stop()
@@ -44,8 +54,10 @@ class ManglerExpMulti:
 
     def play(self, amp=0.8, gen=True):
         self.panMul.value = amp
-        self.amp.play()
-        self.osc.play()
+        self.amp1.play()
+        self.osc1.play()
+        self.amp2.play()
+        self.osc2.play()
         self.fol.play()
         self.dist.play()
         self.filt.play()
@@ -60,8 +72,10 @@ class ManglerExpMulti:
 
     def stop(self):
         self.panMul.value = 0
-        self.amp.stop()
-        self.osc.stop()
+        self.amp1.stop()
+        self.osc1.stop()
+        self.amp2.stop()
+        self.osc2.stop()
         self.fol.stop()
         self.dist.stop()
         self.filt.stop()
@@ -73,12 +87,9 @@ class ManglerExpMulti:
         self.pan.stop()
         self.end.stop()
 
-    def fadeIn(self, value, time):
+    def fade(self, value, time):
         self.panMul.time = time
         self.panMul.value = value
-
-    def fadeOut(self, value, time, init=0.8):
-        self.pan.mul = SigTo(value, time, init)
 
     def sideChain(self, str=1, dur=0.2):
         self.mTrig = Metro(time=self.tm).play()
@@ -104,22 +115,32 @@ class ManglerExpMulti:
             self.isOn = 0
 
     def generate(self, segments, segdur):
-        start = random.uniform(0, self.dur[0]-segdur-0.01)
+        if self.whatTab == 0:
+            self.crossFade1.value = 1
+            self.crossFade2.value = 0
+        else:
+            self.crossFade2.value = 1
+            self.crossFade1.value = 0
+        start = random.uniform(0, self.dur[0]-segdur-0.1)
         stop = start + segdur
-        self.tab.setSound(self.paths[0], start, stop)
+        self.tab[self.whatTab].setSound(self.paths[0], start, stop)
         for l in range(segments-1):
             if l >= len(self.dur):
                 l = 0
             else:
-                start = random.uniform(0, self.dur[l]-segdur-0.01)
+                start = random.uniform(0, self.dur[l]-segdur-0.1)
                 stop = start + segdur
-                self.tab.append(self.paths[l], 0.01, start, stop)
+                self.tab[self.whatTab].append(self.paths[l], 0.1, start, stop)
                 l += 1
 
         newfreq = 1 / (segments * segdur)
-        self.amp.freq = (newfreq * self.transp) * self.pitch
-        self.osc.freq = (newfreq * self.transp) * self.pitch
+        if self.whatTab == 0:
+            self.amp1.freq = (newfreq * self.transp) * self.pitch
+            self.osc1.freq = (newfreq * self.transp) * self.pitch
+            self.whatTab = 1
+        else:
+            self.amp2.freq = (newfreq * self.transp) * self.pitch
+            self.osc2.freq = (newfreq * self.transp) * self.pitch
+            self.whatTab = 0
         self.end.time = 1 / (newfreq * (self.transp * self.pitch))
-
-    def updateBPM(self, BPS):
-        self.tm = BPS
+        print(self.whatTab)

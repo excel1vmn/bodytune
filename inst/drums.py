@@ -15,8 +15,9 @@ class Drums:
         self.sf = OscTrig(self.tab, self.beat, self.tab.getRate()*self.transp, phase=0, interp=2, mul=1)
         self.filt = Biquad(self.sf, freq=self.freq, q=3, type=type, mul=self.tr2)
         self.comp = Compress(self.filt, thresh=-30, ratio=2, mul=0.5)
-        self.fade = SigTo(0, 0.05)
-        self.pan = Pan(self.comp, outs=2, pan=0.50, spread=0.50, mul=self.fade)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
         self.trig = TrigFunc(self.beat, self.newBeat)
         self.stop()
 
@@ -28,40 +29,32 @@ class Drums:
         return self.pan
 
     def play(self, amp=0.8):
+        self.panMul.value = amp
         self.beat.play()
         self.tr2.play()
         self.sf.play()
         self.filt.play()
         self.comp.play()
+        self.panMul.play()
+        self.panPow.play()
         self.pan.play()
         self.trig.play()
-        self.pan.mul = amp
 
     def stop(self):
+        self.panMul.value = 0
         self.beat.stop()
         self.tr2.stop()
         self.sf.stop()
         self.filt.stop()
         self.comp.stop()
+        self.panMul.stop()
+        self.panPow.stop()
         self.pan.stop()
         self.trig.stop()
-        self.pan.mul = 0
 
-    def fadeIn(self, value, time, init=0):
-        if self.fade.get() != init:
-            self.fade.time = 0
-            self.fade.value = init
-
-        self.fade.time = time
-        self.fade.value = value
-
-    def fadeOut(self, value, time, init=0.8):
-        if self.fade.get() != init:
-            self.fade.time = 0
-            self.fade.value = init
-
-        self.fade.time = time
-        self.fade.value = value
+    def fade(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value
 
     def newBeat(self):
         self.beat.new()

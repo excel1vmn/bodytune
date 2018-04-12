@@ -2,7 +2,7 @@ from pyo import *
 import random
 
 class ManglerExp:
-    def __init__(self, path1, path2, TAPS, TM, panval=0.5, drive=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1):
+    def __init__(self, path1, path2, TAPS, TM, drive=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1):
         self.path1 = path1
         self.path2 = path2
         self.tm = TM
@@ -19,7 +19,9 @@ class ManglerExp:
         self.dist = Disto(self.osc, drive=drive*self.fol, slope=2)
         self.filt = Biquad(self.dist, 30, q=1, type=1)
         self.comp = Compress(self.filt+self.osc, thresh=-24, ratio=6, risetime=.01, falltime=.2, knee=0.3)
-        self.pan = Pan(self.comp, outs=2, pan=panval, mul=0)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
@@ -34,19 +36,21 @@ class ManglerExp:
         return self.pan
 
     def play(self, amp=0.8, gen=True):
-        self.pan.mul = amp
+        self.panMul.value = amp
         self.amp.play()
         self.osc.play()
         self.fol.play()
         self.dist.play()
         self.filt.play()
         self.comp.play()
+        self.panMul.play()
+        self.panPow.play()
         self.pan.play()
         if gen == True:
             self.end.play()
 
     def stop(self):
-        self.pan.mul = 0
+        self.panMul.value = 0
         self.amp.stop()
         self.osc.stop()
         self.fol.stop()
@@ -54,13 +58,13 @@ class ManglerExp:
         self.filt.stop()
         self.comp.stop()
         self.pan.stop()
+        self.panMul.stop()
+        self.panPow.stop()
         self.end.stop()
 
-    def fadeIn(self, value, time, init=0):
-        self.pan.mul = SigTo(value, time, init)
-
-    def fadeOut(self, value, time, init=0.8):
-        self.pan.mul = SigTo(value, time, init)
+    def fade(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value
 
     def new(self):
         self.wantsnew = True

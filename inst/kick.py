@@ -7,6 +7,9 @@ class Kick:
         self.env = CosTable([(0,0),(100,1),(400,.3),(3000,.3),(8191,0)])
 
         self.mKick = Seq(time=TM, seq=[TAPS], poly=1, onlyonce=False, speed=1)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
 
     def out(self):
         self.pan.out()
@@ -21,8 +24,6 @@ class Kick:
     def stop(self):
         self.pan.mul = 0
 
-    def fadeIn(self, value, time, init=0):
-        self.pan.mul = SigTo(value, time, init)
-
-    def fadeOut(self, value, time, init=0.8):
-        self.pan.mul = SigTo(value, time, init)
+    def fade(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value

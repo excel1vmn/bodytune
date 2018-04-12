@@ -10,7 +10,7 @@ from inst.manglerexpmulti import *
 from inst.fattener import *
 import math
 
-s = Server(sr=48000, nchnls=12, buffersize=1024, duplex=False)
+s = Server(sr=48000, nchnls=8, buffersize=1024, duplex=False)
 s.setOutputDevice(2)
 s.boot()
 pa_list_devices()
@@ -114,41 +114,40 @@ def timeLine():
     dur += 1
     if dur == 1:
         granuleStrecth.play(0)# fade in log
-        granuleStrecth.fadeIn(1, 40)
+        granuleStrecth.fade(1, 30)
     elif dur == 13:
         douxPadGranule.play(0, gen=False)
-        douxPadGranule.fadeIn(0.5, 30)
+        douxPadGranule.fade(0.7, 10)
     elif dur == 39:
-        granuleStrecth.fadeOut(0, 0.2, 0.2)
-        douxPadGranule.fadeOut(0, 0.2, 0.2)
+        granuleStrecth.fade(0, 0.1)
+        douxPadGranule.fade(0, 0.1)
     elif dur == 40:
         granuleStrecth.randomize(0.8, 1.2)
-        granuleStrecth.fadeIn(0.8, 30)
-        douxPadGranule.fadeIn(0.9, 3)
+        granuleStrecth.fade(0.8, 15)
+        douxPadGranule.fade(0.9, 2)
     elif dur == 43:
-        douxPadGranule.fadeOut(0.2, 25)
+        douxPadGranule.fade(0.2, 20)
     elif dur == 70:
-        granuleStrecth.fadeOut(0, 2, 0.75)
-        stutterPad.play(0)#ajouter impacte
-        stutterPad.fadeIn(0.7,1)
+        granuleStrecth.fade(0, 2)
+        stutterPad.play()#ajouter impacte
     elif dur == 75:
         granuleStrecth.stop()
     elif dur == 85:
         stutterPad.sideChain(1)
         grosNoise.play(0.6)
     elif dur == 90:
-        stutterPad.fadeOut(0.4,10)
-        grosNoise.sideChain(1)
+        stutterPad.fade(0.4, 10)
+        grosNoise.sideChain(0.6)
     elif dur == 110:
-        grosNoise.fadeOut(0,0.2)
-        stutterPad.generate(4,0.015)
+        grosNoise.fade(0, 0.05)
+        stutterPad.generate(4, 0.015)
         lowPad.play(gen=False)
-    elif dur == 111:
+    elif dur == 115:
         grosNoise.stop()
     elif dur == 120:
         lowPad.play(0, gen=False)
-        lowPad.fadeIn(0.8,5)#ajouter impacte
-        stutterPad.fadeIn(0.7,10)
+        lowPad.fade(0.8, 3)#ajouter impacte
+        stutterPad.fade(0.7, 7)
     elif dur == 130:
         lowPad.stop()
         stutterPad.stop()
@@ -158,36 +157,39 @@ def timeLine():
         grosNoise.play()
         grosNoise.sideChain(1)
     elif dur == 150:
-        grosNoise.randomize(.1,10)
+        grosNoise.randomize(.1, 10)
         f2.play(0)
-        f2.fadeIn(0.7,10)
-        kickL.fadeIn(0.8,10,0.3)
+        f2.fade(0.7, 10)
+        kickL.fade(0.8, 10)
     elif dur == 170:
-        f2.randomize(0.2,1.2)#coupure nette
+        f2.randomize(0.2, 1.2)#coupure nette
         kickH.play(0)
-        kickH.fadeIn(0.8,30)
-        grosNoise.fadeIn(1.2,15)
+        kickH.fade(0.8, 30)
+        grosNoise.fade(1, 15)
     elif dur == 200:
-        grosNoise.fadeOut(0,0.1)
+        grosNoise.fade(0, 0.1)
         f2.stop()
         kickH.stop()
         kickL.stop()
-        lowPad.fadeOut(0.1,1)
-        douxPadGranule.play(0, gen=False)
-        douxPadGranule.fadeIn(0.4,30)
-        douxPadGranule.generate(2,0.5)#accumuler partour dans la sphère
+        lowPad.fade(0.1, 1)
+        douxPadGranule.play(0.2, gen=False)
+        douxPadGranule.fade(0.4, 20)
+        douxPadGranule.generate(2, 0.5)#accumuler partour dans la sphère
     elif dur == 205:
         grosNoise.stop()
         lowPad.stop()
     elif dur == 230:
-        douxPadGranule.generate(2,0.5)
+        douxPadGranule.generate(2, 0.5)
     elif dur == 250:
-        douxPadGranule.fadeIn(3,8,0.4)
+        douxPadGranule.fade(1, 5)
+        stutterPad.play(0, gen=False)
     elif dur == 260:
-        douxPadGranule.fadeOut(0,0.2,4)
+        douxPadGranule.fade(0, 0.2)
         douxPadGranule.sideChain()
         arpCrazy.play()
-        kickCrazy.play(0.4)
+        stutterPad.fade(0.8,0.1)
+        stutterPad.generate(16,0.12)
+        #kickCrazy.play(0.4)
 
 
 def pp(address, *args):
@@ -213,9 +215,9 @@ checkTime = TrigFunc(globalM, timeLine)
 #Gestion des outputs
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 padMix = Mix(douxPad.sig()+douxPadGranule.sig()+lowPad.sig()+stutterPad.sig(), mul=0.4).out(0)
-percMix = Mix(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()).out(2)
-sparkMix = Mix(arpCrazy.sig()).out(4)
-mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig()+h1.sig()+h2.sig()+drumCluster.sig()+transparent.sig()+granuleAccu.sig(), mul=0.2).out(6)
+percMix = Mix(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()).out(1)
+sparkMix = Mix(arpCrazy.sig()).out(2)
+mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig()+h1.sig()+h2.sig()+drumCluster.sig()+transparent.sig()+granuleAccu.sig(), mul=0.2).out(3)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 '''
@@ -229,11 +231,11 @@ mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig
 '''
 msg = [0, 0, pi/2, 1, .25, 0, 0]
 sender.send(msg)
-msg = [2, 0, pi/2, 1, 0, 0, 0]
+msg = [1, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
-msg = [4, 0, pi/2, 1, .5, 0, 0]
+msg = [2, 0, pi/2, 1, .5, 0, 0]
 sender.send(msg)
-msg = [6, 0, pi/2, 1, 0, 0, 0]
+msg = [3, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
 
 #s.start()

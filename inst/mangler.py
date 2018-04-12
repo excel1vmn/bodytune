@@ -22,9 +22,9 @@ class Mangler:
         self.bp = ButBP(self.osc, freq=2000, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
-        self.fadeEnv = Fader(fadein=0.5, fadeout=0.5, mul=.5)
-        self.fadeEnv.setExp(1)
-        self.pan = Pan(self.comp, outs=2, mul=self.fadeEnv)
+        self.panMul = SigTo(0)
+        self.panPow = Pow(self.panMul, 3)
+        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
@@ -39,7 +39,7 @@ class Mangler:
         return self.pan
 
     def play(self, amp=0.8, gen=True):
-        self.pan.mul = amp
+        self.panMul.value = amp
         self.amp.play()
         self.osc.play()
         self.fol.play()
@@ -47,12 +47,14 @@ class Mangler:
         self.bp.play()
         self.lp.play()
         self.comp.play()
+        self.panMul.play()
+        self.panPow.play()
         self.pan.play()
         if gen == True:
             self.end.play()
 
     def stop(self):
-        self.pan.mul = 0
+        self.panMul.value = 0
         self.amp.stop()
         self.osc.stop()
         self.fol.stop()
@@ -61,21 +63,13 @@ class Mangler:
         self.lp.stop()
         self.comp.stop()
         self.pan.stop()
+        self.panMul.stop()
+        self.panPow.stop()
         self.end.stop()
 
-    def fadeIn(self, value, time, init=0):
-        #self.pan.mul = SigTo(value, time, init)
-        self.fadeEnv.setFadein(time)
-        self.fadeEnv.mul = value
-        self.pan.mul = self.fadeEnv.play()
-        #self.pan.mul = Fader(fadein=time, mul=value).play()
-
-    def fadeOut(self, value, time, init=0.8):
-        #self.pan.mul = SigTo(value, time, init)
-        self.fadeEnv.setFadeout(time)
-        self.fadeEnv.mul = value
-        self.fadeEnv.stop()
-        #self.pan.mul = Fader(fadeout=time, mul=value).stop()
+    def fade(self, value, time):
+        self.panMul.time = time
+        self.panMul.value = value
 
     def new(self):
         self.wantsnew = True
