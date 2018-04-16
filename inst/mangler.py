@@ -21,10 +21,9 @@ class Mangler:
         self.filt = Biquad(self.osc, 30+self.fol*40, q=2, type=1)
         self.bp = ButBP(self.osc, freq=2000, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
-        self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
-        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
+        self.pan = Pan(self.filt+self.lp, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
@@ -46,7 +45,6 @@ class Mangler:
         self.filt.play()
         self.bp.play()
         self.lp.play()
-        self.comp.play()
         self.panMul.play()
         self.panPow.play()
         self.pan.play()
@@ -61,7 +59,6 @@ class Mangler:
         self.filt.stop()
         self.bp.stop()
         self.lp.stop()
-        self.comp.stop()
         self.pan.stop()
         self.panMul.stop()
         self.panPow.stop()
@@ -83,11 +80,11 @@ class Mangler:
     def generate(self, segments=8, segdur=0.125):
         self.segments = segments
         self.segdur = segdur
-        start = random.uniform(0, self.dur-segdur)
+        start = random.uniform(0, self.dur-segdur-0.1)
         stop = start + segdur
         self.tab.setSound(self.path, start, stop)
         for i in range(segments-1):
-            start = random.uniform(0, self.dur-segdur)
+            start = random.uniform(0, self.dur-segdur-0.1)
             stop = start + segdur
             self.tab.append(self.path, 0.1, start, stop)
         newfreq = 1 / (segments * segdur)

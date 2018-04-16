@@ -18,10 +18,9 @@ class ManglerExp:
         self.fol = Follower(self.osc, freq=20)
         self.dist = Disto(self.osc, drive=drive*self.fol, slope=2)
         self.filt = Biquad(self.dist, 30, q=1, type=1)
-        self.comp = Compress(self.filt+self.osc, thresh=-24, ratio=6, risetime=.01, falltime=.2, knee=0.3)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
-        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
+        self.pan = Pan(self.filt+self.osc, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check)
@@ -42,7 +41,6 @@ class ManglerExp:
         self.fol.play()
         self.dist.play()
         self.filt.play()
-        self.comp.play()
         self.panMul.play()
         self.panPow.play()
         self.pan.play()
@@ -56,7 +54,6 @@ class ManglerExp:
         self.fol.stop()
         self.dist.stop()
         self.filt.stop()
-        self.comp.stop()
         self.pan.stop()
         self.panMul.stop()
         self.panPow.stop()

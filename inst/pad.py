@@ -2,12 +2,14 @@ from pyo import *
 import random
 
 class Pad:
-    def __init__(self, path, TM, dns=1, transp=1, fFreq=100):
+    def __init__(self, path, TM, dns=1, transp=1, fFreq=150, fRatio=1000):
         self.path = path
         self.tm = TM
         self.transp = transp
         self.density = dns
-        self.freq = fFreq
+        self.fFreq = fFreq
+        if fFreq <= 1:
+            self.fFreq = (fFreq * fRatio) + 50
         self.snd = SndTable(self.path)
         self.end = self.snd.getSize(all=False) - 48000
         self.env = HannTable()
@@ -15,7 +17,7 @@ class Pad:
         self.dns = Randi(min=10*self.density, max=50*self.density, freq=self.tm)
         self.pit = Randi(min=0.99*self.transp, max=1.01*self.transp, freq=100)
         self.g = Granule(self.snd, self.env, dens=self.dns, pitch=self.pit, pos=self.pos, dur=0.1)
-        self.hp = ButHP(self.g, freq=self.freq, mul=0.7)
+        self.hp = Biquad(self.g, freq=self.fFreq, type=1, q=2)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
         self.pan = Pan(self.hp, outs=2, mul=self.panPow)

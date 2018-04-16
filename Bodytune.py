@@ -48,48 +48,61 @@ lf3 = LFO(freq=lf, sharp=lf2, type=7, mul=500, add=700)
 TAPS = 16
 BPM = 85
 BPS = Sig(60/BPM)
-FLUX = SigTo(1000, 0.2)
+FLUX = SigTo(100, 0.1)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Instances des instruments
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#sinus = Sine(freq=FLUX, mul=.2).out()
-
-sine = SineLoop(freq=[49,50,51], mul=0.2)
-sf = SfPlayer(path9, loop=True).play()
-
-kickH = Drums(path10, TAPS, BPS, 100, 50, 30, 1, type=1)
-kickL = Drums(path101, TAPS, BPS, 80, 10, 50, 0.7, freq=150, type=0)
-granuleStrecth = Pad(path6, BPS, 2, 1, FLUX)
+granuleStrecth = Pad(path6, BPS, 2, 1, 50)
+granuleStrecthRumble = Pad(path6, BPS, 2, 1, FLUX)
 f1 = Pad(path16, BPS, 2, 3)
 f2 = Pad(path7, BPS, 2, 2)
-grosNoise = Pad(path9, BPS, 2 ,2) #ajout modulation du sidechain
+grosNoise = Pad(path9, BPS, 2 ,2, FLUX, 2000) #ajout modulation du sidechain
 #g = Mangler(path12, TAPS, BPS, transp=1, segments=9, segdur=0.55, w1=100, w2=50, w3=80, poly=3, newyork=1)
 
 #Tonale
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-douxPadGranule = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=16, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-granules = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=16, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-douxPad = Drums(path5, TAPS, BPS, w1=100, w2=0, w3=0)
-lowPad = Mangler(path5, TAPS, BPS, transp=0.2, segments=5, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
+douxPadGranule = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu1 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu2 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.9, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+
+douxPadGranulepitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.5)+0.75, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu1pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu2pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+
+voxyLine = ManglerExpMulti([path7], TAPS, BPS, transp=1, segments=4, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
+
+granules = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPad = Pad(path5, BPS, dns=4, transp=(FLUX*0.5)+0.75, fFreq=150, fRatio=1000)
+lowPad = ManglerExpMulti([path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
 stutterPad = ManglerExpMulti([path18,path19], TAPS, BPS, drive=3, transp=1.8, segments=3, segdur=0.45, w1=80, w2=50, w3=70, poly=4, newyork=1)
 arpCrazy = Mangler(path4, TAPS, BPS*0.25, segments=5, segdur=0.165, w1=100, w2=20, w3=70, poly=2)
-kickCrazy = Mangler(path10, TAPS, BPS*0.25, segments=7, segdur=0.165, w1=100, w2=20, w3=70, poly=4)
+kickCrazy = Mangler(path10, TAPS, BPS, transp=2, segments=7, segdur=0.165, w1=100, w2=20, w3=70, poly=4)
 
 
-granuleAccu = Drums(path9, TAPS, BPS, w1=80, w2=50, w3=60, transp=FLUX, sMul=8, envTable=[(0,0),(10,1),(8180,1),(8190,0)])
+granuleAccu = Drums(path9, TAPS, BPS, w1=80, w2=50, w3=60, transp=(FLUX*0.5)+0.75, sMul=8, envTable=[(0,0),(10,1),(8180,1),(8190,0)])
+
+#Voix
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+transparent = Drums(path2, TAPS, BPS, w1=100, w2=0, w3=0, transp=(FLUX*0.5)+0.75, sMul=0.5)
+transparentPad = Pad(path2, BPS, dns=4, transp=(FLUX*0.5)+0.75, fFreq=FLUX, fRatio=100)
+transparentGranule = ManglerExpMulti([path2], TAPS, BPS, drive=3, transp=(FLUX*0.5)+0.75, segments=3, segdur=0.02, w1=100, w2=0, w3=50, poly=2, newyork=0, fFreq=FLUX, fRatio=1000)
 
 
 h1 = ManglerExp(path2, path14, TAPS, BPS, drive=0.2, segments=12, segdur=0.25, w1=100, w2=0, w3=50, poly=2)
 h2 = ManglerExp(path5, path8, TAPS, BPS, drive=0.8, segments=12, segdur=0.05, w1=100, w2=0, w3=50, poly=4)
 h = ManglerExp(path9, path10, TAPS, BPS, drive=0.5, segments=24, segdur=0.12, w1=100, w2=0, w3=50, poly=4)
 
+
 #Percussions
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+kickH = Drums(path10, TAPS, BPS, 100, 50, 30, 1, type=1)
+kickL = Drums(path101, TAPS, BPS, 80, 10, 50, 0.7, freq=150, type=0)
+kickLFast = Drums(path101, TAPS, BPS, 80, 20, 15, 0.5, freq=50, type=1, sMul=4)
 drumCluster = ManglerExpMulti([path11,path12,path13,path14,path15], TAPS, BPS, drive=2, transp=1, segments=8, segdur=0.7, w1=20, w2=50, w3=30, poly=4, newyork=1)
 drumClusterSend = ManglerExpMulti([path11,path12,path13,path14,path15], TAPS, BPS, drive=2, transp=1, segments=8, segdur=0.7, w1=100, w2=50, w3=30, poly=4, newyork=1)
 
-transparent = ManglerExpMulti([path2,path17,path7,path10], TAPS, BPS, drive=0.5, transp=1, segments=8, segdur=0.1, w1=100, w2=5, w3=100, poly=2, newyork=1)
+#transparent = ManglerExpMulti([path2,path17,path7,path10], TAPS, BPS, drive=0.5, transp=1, segments=8, segdur=0.1, w1=100, w2=5, w3=100, poly=2, newyork=1)
 
 fat = Fattener(drumClusterSend.sig(), BPS, 5)
 
@@ -134,38 +147,43 @@ def timeLine():
         granuleStrecth.stop()
     elif dur == 85:
         stutterPad.sideChain(1)
-        grosNoise.play(0.6)
+        grosNoise.play()
     elif dur == 90:
         stutterPad.fade(0.4, 10)
         grosNoise.sideChain(0.6)
     elif dur == 110:
-        grosNoise.fade(0, 0.05)
+        grosNoise.fade(0, 0.01)
         stutterPad.generate(4, 0.015)
-        lowPad.play(gen=False)
+        lowPad.play(0.6, gen=False)
     elif dur == 115:
         grosNoise.stop()
     elif dur == 120:
         lowPad.play(0, gen=False)
         lowPad.fade(0.8, 3)#ajouter impacte
         stutterPad.fade(0.7, 7)
+    elif dur == 129:
+        lowPad.fade(0, 0.01)
+        stutterPad.fade(0, 0.01)
     elif dur == 130:
         lowPad.stop()
-        stutterPad.stop()
+        stutterPad.fade(0, 5)
     elif dur == 135:
         kickL.play(0.2)
         lowPad.play(gen=False)
         grosNoise.play()
         grosNoise.sideChain(1)
+    elif dur == 140:
+        stutterPad.stop()
     elif dur == 150:
         grosNoise.randomize(.1, 10)
         f2.play(0)
-        f2.fade(0.7, 10)
-        kickL.fade(0.8, 10)
+        f2.fade(0.8, 10)
+        kickL.fade(0.6, 10)
     elif dur == 170:
         f2.randomize(0.2, 1.2)#coupure nette
         kickH.play(0)
         kickH.fade(0.8, 30)
-        grosNoise.fade(1, 15)
+        grosNoise.fade(1.5, 20)
     elif dur == 200:
         grosNoise.fade(0, 0.1)
         f2.stop()
@@ -173,29 +191,83 @@ def timeLine():
         kickL.stop()
         lowPad.fade(0.1, 1)
         douxPadGranule.play(0.2, gen=False)
-        douxPadGranule.fade(0.4, 20)
-        douxPadGranule.generate(2, 0.5)#accumuler partour dans la sphère
+        douxPadGranule.fade(0.6, 20)
+        douxPadGranule.generate(2, 0.5)
+        douxPadGranuleAccu1.play(0, gen=False)
+        douxPadGranuleAccu2.play(0, gen=False)
+        douxPadGranuleAccu1.fade(0.5, 15)
+        douxPadGranuleAccu2.fade(0.5, 15)
     elif dur == 205:
         grosNoise.stop()
         lowPad.stop()
     elif dur == 230:
         douxPadGranule.generate(2, 0.5)
+        douxPadGranuleAccu1.generate(2, 0.5)
+        douxPadGranuleAccu2.generate(2, 0.5)
     elif dur == 250:
         douxPadGranule.fade(1, 5)
+        douxPadGranuleAccu1.fade(0.8, 5)
+        douxPadGranuleAccu2.fade(0.8, 5)
         stutterPad.play(0, gen=False)
     elif dur == 260:
-        douxPadGranule.fade(0, 0.2)
-        douxPadGranule.sideChain()
-        arpCrazy.play()
-        stutterPad.fade(0.8,0.1)
-        stutterPad.generate(16,0.12)
-        #kickCrazy.play(0.4)
+        douxPadGranule.fade(0, 0.01)
+        arpCrazy.play(0.2)
+        arpCrazy.fade(0.8, 30)
+        stutterPad.fade(0.8, 2)
+        stutterPad.generate(11, 0.1)
+    #elif dur == 295:
+        #kickLFast.play(0)
+
+    elif dur == 300:
+        #kickLFast.fade(0.6, 0.005)
+        kickCrazy.play(0)
+        douxPadGranule.fade(1, 5)
+        douxPadGranuleAccu1.fade(1, 5)
+        douxPadGranuleAccu2.fade(1, 5)
+        douxPadGranule.generate(2, 0.009)
+        douxPadGranuleAccu1.generate(2, 0.008)
+        douxPadGranuleAccu2.generate(2, 0.009)
+    elif dur == 320:
+        kickCrazy.fade(0.7, 15)
+        #kickLFast.fade(0.2, 0.5)
+        douxPadGranule.generate(2, 0.008)
+        douxPadGranuleAccu1.generate(2, 0.007)
+        douxPadGranuleAccu2.generate(2, 0.008)
+    elif dur == 340:
+        voxyLine.play(0)
+        voxyLine.fade(1.4, 20)
+        douxPadGranule.generate(2, 0.004)
+        douxPadGranuleAccu1.generate(3, 0.009)
+        douxPadGranuleAccu2.generate(3, 0.01)
+        douxPadGranulepitchMod.play(0)
+        douxPadGranuleAccu1pitchMod.play(0)
+        douxPadGranuleAccu2pitchMod.play(0)
+    elif dur == 350:
+        douxPadGranulepitchMod.play(0)
+        douxPadGranuleAccu1pitchMod.play(0)
+        douxPadGranuleAccu2pitchMod.play(0)
+        douxPadGranulepitchMod.generate(2, 0.004)
+        douxPadGranuleAccu1pitchMod.generate(3, 0.009)
+        douxPadGranuleAccu2pitchMod.generate(3, 0.01)
+        douxPadGranulepitchMod.fade(1, 10)
+        douxPadGranuleAccu1pitchMod.fade(1, 10)
+        douxPadGranuleAccu2pitchMod.fade(1, 10)
+        douxPadGranule.fade(0, 10)
+        douxPadGranuleAccu1.fade(0, 10)
+        douxPadGranuleAccu2.fade(0, 10)
+    elif dur == 500:
+        transparent.play(0)
+        transparentPad.play(0)
+        transparentGranule.play(0)
+        transparent.fade(0.2, 10)
+        transparentPad.fade(0.4, 10)
+        transparentGranule.fade(1.2, 10)
 
 
 def pp(address, *args):
     global FLUX, BPM
     BPM = args[1]
-    FLUX.value = args[0]
+    FLUX.value = args[0]/1024
     #print(BPM)
     #print(FLUX.value)
 
@@ -214,11 +286,23 @@ checkTime = TrigFunc(globalM, timeLine)
 
 #Gestion des outputs
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-padMix = Mix(douxPad.sig()+douxPadGranule.sig()+lowPad.sig()+stutterPad.sig(), mul=0.4).out(0)
-percMix = Mix(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()).out(1)
-sparkMix = Mix(arpCrazy.sig()).out(2)
-mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig()+h1.sig()+h2.sig()+drumCluster.sig()+transparent.sig()+granuleAccu.sig(), mul=0.2).out(3)
+padComp = Compress(douxPad.sig()+douxPadGranule.sig()+lowPad.sig()+stutterPad.sig()+douxPadGranulepitchMod.sig(), thresh=-24, ratio=6, risetime=.01, falltime=.2, knee=0.5)
+
+padMix = Mix(padComp, mul=0.4).out(0)
+
+percMix = Mix(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()+kickLFast.sig(), mul=0.4).out(1)
+
+sparkMix = Mix(arpCrazy.sig()+voxyLine.sig()).out(2)
+
+preClip = Clip(grosNoise.sig(), max=1.4, mul=0.8)
+noiseMix = Mix(fat.sig()+granuleStrecth.sig()+preClip+f1.sig()+f2.sig()+h.sig()+h1.sig()+h2.sig()+drumCluster.sig()+granuleAccu.sig(), mul=0.2).out(3)
+
+spatLMix = Mix(douxPadGranuleAccu1.sig()+douxPadGranuleAccu1pitchMod.sig(), mul=0.4).out(4)
+spatRMix = Mix(douxPadGranuleAccu2.sig()+douxPadGranuleAccu2pitchMod.sig(), mul=0.4).out(5)
+
+voxMix = Mix(transparent.sig()+transparentPad.sig()+transparentGranule.sig(), mul=0.4).out(6)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+p1 = Phasor(freq=0.01, mul=pi, add=0)
 
 '''
 1. (i) The source number starting at 0.
@@ -229,13 +313,19 @@ mix = Mix(fat.sig()+granuleStrecth.sig()+f1.sig()+f2.sig()+grosNoise.sig()+h.sig
 4. (f) The span in azimuth between 0 and 2.
 5. (f) The span in elevation between 0 and 0.5.
 '''
-msg = [0, 0, pi/2, 1, .25, 0, 0]
+msg = [0, 0, pi/2.5, 0.5, .12, 0, 0]
 sender.send(msg)
 msg = [1, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
 msg = [2, 0, pi/2, 1, .5, 0, 0]
 sender.send(msg)
 msg = [3, 0, pi/2, 1, 0, 0, 0]
+sender.send(msg)
+msg = [4, pi*1.75, pi/2, 0.5, 0.5, 0, 0]
+sender.send(msg)
+msg = [5, pi/4, pi/2, 0.5, 0.5, 0, 0]
+sender.send(msg)
+msg = [6, 0, pi/2, 1, 0, 0, 0]
 sender.send(msg)
 
 #s.start()

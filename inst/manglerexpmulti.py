@@ -2,7 +2,7 @@ from pyo import *
 import random
 
 class ManglerExpMulti:
-    def __init__(self, paths, TAPS, TM, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
+    def __init__(self, paths, TAPS, TM, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, fFreq=2000, fRatio=2000, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
         self.dur = []
         self.paths = paths
         self.tm = TM
@@ -10,12 +10,14 @@ class ManglerExpMulti:
         self.pitch = transp
         self.segments = segments
         self.segdur = segdur
+        self.fFreq = fFreq
+        if fFreq <= 1:
+            self.fFreq = (fFreq * fRatio) + 50
         self.isOn = 0
         for i in range(len(self.paths)):
             self.dur.append(sndinfo(self.paths[i])[1])
 
         self.env = CosTable(envTable)
-        #self.tab = SndTable(initchnls=2)
         self.whatTab = 0
         self.tab = [SndTable(initchnls=2), SndTable(initchnls=2)]
         self.beat = Beat(self.tm, self.taps, w1, w2, w3, poly).play()
@@ -33,7 +35,7 @@ class ManglerExpMulti:
         self.fol = Follower(self.osc1+self.osc2, freq=20)
         self.dist = Disto(self.osc1+self.osc2, drive=drive*self.fol, slope=2)
         self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
-        self.bp = ButBP(self.dist, freq=2000, q=4)
+        self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
         self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
         self.panMul = SigTo(0)
@@ -63,7 +65,6 @@ class ManglerExpMulti:
         self.filt.play()
         self.bp.play()
         self.lp.play()
-        self.comp.play()
         self.panMul.play()
         self.panPow.play()
         self.pan.play()
@@ -81,7 +82,6 @@ class ManglerExpMulti:
         self.filt.stop()
         self.bp.stop()
         self.lp.stop()
-        self.comp.stop()
         self.panMul.stop()
         self.panPow.stop()
         self.pan.stop()
@@ -121,16 +121,16 @@ class ManglerExpMulti:
         else:
             self.crossFade2.value = 1
             self.crossFade1.value = 0
-        start = random.uniform(0, self.dur[0]-segdur-0.1)
+        start = random.uniform(0, self.dur[0]-segdur-0.5)
         stop = start + segdur
         self.tab[self.whatTab].setSound(self.paths[0], start, stop)
         for l in range(segments-1):
             if l >= len(self.dur):
                 l = 0
             else:
-                start = random.uniform(0, self.dur[l]-segdur-0.1)
+                start = random.uniform(0, self.dur[l]-segdur-0.5)
                 stop = start + segdur
-                self.tab[self.whatTab].append(self.paths[l], 0.1, start, stop)
+                self.tab[self.whatTab].append(self.paths[l], 0.5, start, stop)
                 l += 1
 
         newfreq = 1 / (segments * segdur)
@@ -143,4 +143,3 @@ class ManglerExpMulti:
             self.osc2.freq = (newfreq * self.transp) * self.pitch
             self.whatTab = 0
         self.end.time = 1 / (newfreq * (self.transp * self.pitch))
-        print(self.whatTab)

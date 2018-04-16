@@ -8,16 +8,16 @@ class Drums:
         self.taps = TAPS
         self.transp = transp
         self.freq = freq
+        self.sMul = Sig(value=sMul)
         self.t = CosTable(envTable)
         self.tab = SndTable(path)
-        self.beat = Beat(time=self.tm, taps=self.taps, w1=w1, w2=w2, w3=w3, poly=1)
+        self.beat = Beat(time=self.tm/self.sMul, taps=self.taps, w1=w1, w2=w2, w3=w3, poly=1)
         self.tr2 = TrigEnv(self.beat, table=self.t, dur=self.beat['dur'], mul=self.beat['amp'])
         self.sf = OscTrig(self.tab, self.beat, self.tab.getRate()*self.transp, phase=0, interp=2, mul=1)
         self.filt = Biquad(self.sf, freq=self.freq, q=3, type=type, mul=self.tr2)
-        self.comp = Compress(self.filt, thresh=-30, ratio=2, mul=0.5)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
-        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
+        self.pan = Pan(self.filt, outs=2, mul=self.panPow)
         self.trig = TrigFunc(self.beat, self.newBeat)
         self.stop()
 
@@ -34,7 +34,6 @@ class Drums:
         self.tr2.play()
         self.sf.play()
         self.filt.play()
-        self.comp.play()
         self.panMul.play()
         self.panPow.play()
         self.pan.play()
@@ -46,7 +45,6 @@ class Drums:
         self.tr2.stop()
         self.sf.stop()
         self.filt.stop()
-        self.comp.stop()
         self.panMul.stop()
         self.panPow.stop()
         self.pan.stop()
