@@ -12,7 +12,7 @@ char ssid[] = "lel";          // your network SSID (name) //huzzah
 char pass[] = "majorlel";                    // your network password //hazzuhosc
 
 WiFiUDP Udp;                                // A UDP instance to let us send and receive packets over UDP
-const IPAddress outIp(192,168,43,162);        // remote IP of your computer
+const IPAddress outIp(192,168,43,162);        // remote IP of your computer  Hotspot 192,168,43,162
 const unsigned int outPort = 9001;          // remote port to receive OSC
 const unsigned int localPort = 8888;        // local port to listen for OSC packets (actually not used for sending)
 const int OUTPUT_TYPE = SERIAL_PLOTTER;

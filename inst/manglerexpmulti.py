@@ -37,10 +37,10 @@ class ManglerExpMulti:
         self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
         self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
         self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
-        self.comp = Compress(self.filt+self.lp, thresh=-30, ratio=8, risetime=.01, falltime=.2, knee=0.2)
+        self.clip = Clip(self.filt+self.lp, max=1.2, mul=0.8)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
-        self.pan = Pan(self.comp, outs=2, mul=self.panPow)
+        self.pan = Pan(self.clip, outs=2, mul=self.panPow)
 
         self.count = 0
         self.end = TrigFunc(self.beat, self.check).stop()
