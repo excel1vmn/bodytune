@@ -2,17 +2,18 @@ from pyo import *
 import random
 
 class ManglerExpMulti:
-    def __init__(self, paths, TAPS, TM, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, fFreq=2000, fRatio=2000, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
+    def __init__(self, paths, TAPS, TM, drive=1, transp=1, segments=8, segdur=0.125, w1=100, w2=0, w3=0, poly=1, newyork=0, fFreq=50, fRatio=2000, envTable=[(0,0),(32,1),(8100,1),(8190,0)]):
         self.dur = []
         self.paths = paths
         self.tm = TM
         self.taps = TAPS
+        self.drive = SigTo(value=drive, time=0.1)
         self.pitch = transp
         self.segments = segments
         self.segdur = segdur
-        self.fFreq = fFreq
-        if fFreq <= 1:
-            self.fFreq = (fFreq * fRatio) + 50
+        self.fFreq = SigTo(value=fFreq, time=0.1)
+        if self.fFreq.value <= 1:
+            self.fFreq.value = (fFreq.value * fRatio) + 50
         self.isOn = 0
         for i in range(len(self.paths)):
             self.dur.append(sndinfo(self.paths[i])[1])
@@ -33,11 +34,12 @@ class ManglerExpMulti:
         self.amp2 = OscTrig(self.env, self.beat, self.tab[self.whatTab].getRate()*transp)
         self.osc2 = OscTrig(self.tab[self.whatTab], self.beat, self.tab[self.whatTab].getRate()*transp, interp=4, mul=self.crossFade2)
         self.fol = Follower(self.osc1+self.osc2, freq=20)
-        self.dist = Disto(self.osc1+self.osc2, drive=drive*self.fol, slope=2)
-        self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
-        self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
-        self.lp = Biquad(self.bp, freq=1000, q=2, type=0, mul=newyork)
-        self.clip = Clip(self.filt+self.lp, max=1.2, mul=0.8)
+        self.dist = Disto(self.osc1+self.osc2, drive=self.drive*self.fol, slope=2)
+        #self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
+        #self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
+        self.lp = Biquad(self.dist, freq=1000, q=2, type=0, mul=newyork)
+        self.hp = Biquad(self.dist+self.lp, freq=self.fFreq, type=1, q=2)
+        self.clip = Clip(self.hp, max=1.2)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
         self.pan = Pan(self.clip, outs=2, mul=self.panPow)
@@ -62,8 +64,8 @@ class ManglerExpMulti:
         self.osc2.play()
         self.fol.play()
         self.dist.play()
-        self.filt.play()
-        self.bp.play()
+        #self.filt.play()
+        #self.bp.play()
         self.lp.play()
         self.panMul.play()
         self.panPow.play()
@@ -79,8 +81,8 @@ class ManglerExpMulti:
         self.osc2.stop()
         self.fol.stop()
         self.dist.stop()
-        self.filt.stop()
-        self.bp.stop()
+        #self.filt.stop()
+        #self.bp.stop()
         self.lp.stop()
         self.panMul.stop()
         self.panPow.stop()

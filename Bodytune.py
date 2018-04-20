@@ -62,13 +62,13 @@ grosNoise = Pad(path9, BPS, 2 ,2, FLUX.value, 2000) #ajout modulation du sidecha
 
 #Tonale
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-douxPadGranule = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-douxPadGranuleAccu1 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-douxPadGranuleAccu2 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.9, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranule = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=4, newyork=1, fFreq=5000, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu1 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu2 = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.9, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
 
-douxPadGranulepitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=FLUX+0.75, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-douxPadGranuleAccu1pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
-douxPadGranuleAccu2pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranulepitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=FLUX+0.75, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu1pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
+douxPadGranuleAccu2pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
 
 voxyLine = ManglerExpMulti([path7], TAPS, BPS, transp=1, segments=4, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
 
@@ -84,7 +84,7 @@ granuleAccu = Drums(path9, TAPS, BPS, w1=80, w2=50, w3=60, transp=(FLUX*0.5)+0.7
 
 #Voix
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-transparent = Drums(path2, TAPS, BPS, w1=100, w2=0, w3=0, transp=(FLUX*0.5)+0.75, sMul=0.5)
+transparent = Drums(path2, TAPS, BPS, w1=100, w2=0, w3=0, transp=(FLUX+0.25), sMul=0.125)
 transparentPad = Pad(path2, BPS, dns=4, transp=(FLUX*0.5)+0.75, fFreq=FLUX, fRatio=100)
 transparentGranule = ManglerExpMulti([path2], TAPS, BPS, drive=3, transp=(FLUX*0.5)+0.75, segments=3, segdur=0.02, w1=100, w2=0, w3=50, poly=2, newyork=0, fFreq=FLUX, fRatio=1000)
 
@@ -133,6 +133,8 @@ def timeLine():
     elif dur == 13:
         douxPadGranule.play(0, gen=False)
         douxPadGranule.fade(0.7, 10)
+        douxPadGranule.fFreq.time = 10
+        douxPadGranule.fFreq.value = 50
     elif dur == 39:
         granuleStrecth.fade(0, 0.1)
         douxPadGranule.fade(0, 0.1)
@@ -144,7 +146,8 @@ def timeLine():
         douxPadGranule.fade(0, 20)
     elif dur == 70:
         granuleStrecth.fade(0, 2)
-        stutterPad.play()
+        stutterPad.play(0)
+        stutterPad.fade(0.5, 10)
     elif dur == 75:
         granuleStrecth.stop()
         douxPadGranule.stop()
@@ -152,7 +155,6 @@ def timeLine():
         stutterPad.sideChain(1)
         grosNoise.play()
     elif dur == 90:
-        stutterPad.fade(0.4, 10)
         grosNoise.sideChain(0.6)
     elif dur == 110:
         grosNoise.fade(0, 0.01)
@@ -163,7 +165,7 @@ def timeLine():
         grosNoise.stop()
     elif dur == 120:
         lowPad.fade(0.8, 3)#ajouter impacte
-        stutterPad.fade(0.7, 7)
+        stutterPad.fade(1, 7)
     elif dur == 129:
         lowPad.fade(0, 0.01)
         stutterPad.fade(0, 0.01)
@@ -217,7 +219,7 @@ def timeLine():
     elif dur == 260:
         douxPadGranule.fade(0, 0.01)
         arpCrazy.play(0.2)
-        arpCrazy.fade(0.8, 30)
+        arpCrazy.fade(0.7, 30)
         stutterPad.fade(0.8, 2)
         stutterPad.generate(11, 0.1)
     elif dur == 295:
@@ -232,8 +234,8 @@ def timeLine():
         douxPadGranuleAccu1.generate(2, 0.008)
         douxPadGranuleAccu2.generate(2, 0.009)
     elif dur == 320:
-        kickCrazy.fade(0.7, 15)
-        kickLFast.fade(0.8, 25)
+        kickCrazy.fade(0.6, 15)
+        kickLFast.fade(1, 25)
         douxPadGranule.generate(2, 0.008)
         douxPadGranuleAccu1.generate(2, 0.007)
         douxPadGranuleAccu2.generate(2, 0.008)
@@ -283,16 +285,15 @@ def timeLine():
         transparentGranule.play(0)
         transparent.fade(0.2, 10)
         transparentPad.fade(0.4, 10)
-        transparentGranule.fade(1.2, 10)
+        transparentGranule.fade(0.8, 10)
     elif dur == 550:
-        transparent.fade(0.6, 0.1)
+        transparent.fade(0.8, 0.1)
+        transparent.fade(0.2, 1)
         transparentPad.fade(0, 20)
         transparentGranule.fade(0, 15)
         douxPadGranulepitchMod.fade(0, 15)
         douxPadGranuleAccu1pitchMod.fade(0, 15)
         douxPadGranuleAccu2pitchMod.fade(0, 15)
-    elif dur == 551:
-        transparent.fade(0.2, 3)
     elif dur == 555:
         transparent.fade(0, 10)
 
@@ -301,7 +302,7 @@ def pp(address, *args):
     global FLUX, BPM
     BPM = args[1]
     FLUX.value = args[0]/1024
-    print(BPM)
+    #print(BPM)
     print(FLUX.value)
 
 r = OscDataReceive(9001, "/BPM", pp)
@@ -312,7 +313,7 @@ def checkBPM():
     BPS.value -= 1
     FLUX.time = BPS
     globalM.time = BPS
-    #print(BPM)
+    print(BPM)
     #print(FLUX.value)
 
 globalM = Metro(time=BPS)
@@ -336,7 +337,10 @@ noiseMix = Mix(fat.sig()+granuleStrecth.sig()+granuleStrecthRumble.sig()+preClip
 spatLMix = Mix(douxPadGranuleAccu1.sig()+douxPadGranuleAccu1pitchMod.sig(), mul=0.3).out(4)
 spatRMix = Mix(douxPadGranuleAccu2.sig()+douxPadGranuleAccu2pitchMod.sig(), mul=0.3).out(5)
 
-voxMix = Mix(transparent.sig()+transparentPad.sig()+transparentGranule.sig(), mul=0.4).out(6)
+voxMix = Mix(transparent.sig()+transparentPad.sig()+transparentGranule.sig(), mul=0.2).out(6)
+
+subSplit = EQ(padComp+padMix+sparkMix+noiseMix+spatLMix+spatRMix+voxMix, freq=80, q=1, type=1, mul=0.1)
+subMix = Mix(subSplit, mul=0.1).out(7)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #p1 = Phasor(freq=0.01, mul=pi, add=0)
 
