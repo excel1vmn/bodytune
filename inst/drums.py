@@ -10,7 +10,7 @@ class Drums:
         self.freq = freq
         self.sMul = Sig(value=sMul)
         self.t = CosTable(envTable)
-        self.pitchEnv = CosTable([(0,0), (50,1), (150,.25), (300, 0), (8191,0)])
+        #self.pitchEnv = CosTable([(0,0), (50,1), (150,.25), (300, 0), (8191,0)])
         self.tab = SndTable(path)
         self.beat = Beat(time=self.tm/self.sMul, taps=self.taps, w1=w1, w2=w2, w3=w3, poly=1)
         self.tr2 = TrigEnv(self.beat, table=self.t, dur=self.beat['dur'], mul=self.beat['amp'])

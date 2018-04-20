@@ -39,7 +39,7 @@ class ManglerExpMulti:
         #self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
         self.lp = Biquad(self.dist, freq=1000, q=2, type=0, mul=newyork)
         self.hp = Biquad(self.dist+self.lp, freq=self.fFreq, type=1, q=2)
-        self.clip = Clip(self.hp, max=1.2)
+        self.clip = Clip(self.hp, max=1.5)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
         self.pan = Pan(self.clip, outs=2, mul=self.panPow)

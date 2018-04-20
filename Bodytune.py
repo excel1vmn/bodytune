@@ -70,12 +70,12 @@ douxPadGranulepitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=FLUX+0
 douxPadGranuleAccu1pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.75, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
 douxPadGranuleAccu2pitchMod = ManglerExpMulti([path5,path5], TAPS, BPS, transp=(FLUX*0.75)+0.75, segments=5, segdur=0.6, w1=100, w2=0, w3=0, poly=4, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
 
-voxyLine = ManglerExpMulti([path7], TAPS, BPS, transp=1, segments=4, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
+voxyLine = ManglerExpMulti([path7], TAPS, BPS, transp=1.5, segments=4, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
 
 granules = ManglerExpMulti([path5,path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=50, poly=8, newyork=1, envTable=[(0,0),(100,1),(8100,1),(8190,0)])
 douxPad = Pad(path5, BPS, dns=4, transp=(FLUX*0.5)+0.75, fFreq=150, fRatio=1000)
 lowPad = ManglerExpMulti([path5], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1)
-stutterPad = ManglerExpMulti([path18,path19], TAPS, BPS, drive=3, transp=1.8, segments=3, segdur=0.45, w1=80, w2=50, w3=70, poly=4, newyork=1)
+stutterPad = ManglerExpMulti([path18,path19], TAPS, BPS, drive=3, transp=1.8, segments=3, segdur=0.45, w1=80, w2=50, w3=70, poly=4, newyork=1, fFreq=200)
 arpCrazy = Mangler(path4, TAPS, BPS*0.25, segments=5, segdur=0.165, w1=100, w2=20, w3=70, poly=2)
 kickCrazy = Mangler(path10, TAPS, BPS, transp=2, segments=7, segdur=0.165, w1=100, w2=20, w3=70, poly=4)
 
@@ -141,13 +141,14 @@ def timeLine():
     elif dur == 40:
         granuleStrecth.randomize(0.8, 1.2)
         granuleStrecth.fade(0.8, 15)
-        douxPadGranule.fade(0.9, 2)
-    elif dur == 43:
+        douxPadGranule.fade(0.9, 6)
+    elif dur == 45:
         douxPadGranule.fade(0, 20)
+    elif dur == 55:
+        stutterPad.play(0)
+        stutterPad.fade(1.2, 8)
     elif dur == 70:
         granuleStrecth.fade(0, 2)
-        stutterPad.play(0)
-        stutterPad.fade(0.5, 10)
     elif dur == 75:
         granuleStrecth.stop()
         douxPadGranule.stop()
@@ -165,7 +166,9 @@ def timeLine():
         grosNoise.stop()
     elif dur == 120:
         lowPad.fade(0.8, 3)#ajouter impacte
-        stutterPad.fade(1, 7)
+        stutterPad.fade(2, 7)
+        stutterPad.drive.time = 5
+        stutterPad.drive.value = 30
     elif dur == 129:
         lowPad.fade(0, 0.01)
         stutterPad.fade(0, 0.01)
@@ -198,12 +201,12 @@ def timeLine():
         kickL.stop()
         lowPad.fade(0.1, 1)
         douxPadGranule.play(0.2, gen=False)
-        douxPadGranule.fade(0.6, 20)
+        douxPadGranule.fade(0.7, 15)
         douxPadGranule.generate(2, 0.5)
         douxPadGranuleAccu1.play(0, gen=False)
         douxPadGranuleAccu2.play(0, gen=False)
-        douxPadGranuleAccu1.fade(0.5, 15)
-        douxPadGranuleAccu2.fade(0.5, 15)
+        douxPadGranuleAccu1.fade(0.6, 10)
+        douxPadGranuleAccu2.fade(0.6, 10)
     elif dur == 205:
         grosNoise.stop()
         lowPad.stop()
@@ -213,15 +216,17 @@ def timeLine():
         douxPadGranuleAccu2.generate(2, 0.5)
     elif dur == 250:
         douxPadGranule.fade(1, 5)
-        douxPadGranuleAccu1.fade(0.8, 5)
-        douxPadGranuleAccu2.fade(0.8, 5)
+        douxPadGranuleAccu1.fade(0.9, 5)
+        douxPadGranuleAccu2.fade(0.9, 5)
         stutterPad.play(0, gen=False)
     elif dur == 260:
         douxPadGranule.fade(0, 0.01)
         arpCrazy.play(0.2)
         arpCrazy.fade(0.7, 30)
-        stutterPad.fade(0.8, 2)
+        stutterPad.fade(1.5, 2)
         stutterPad.generate(11, 0.1)
+        stutterPad.drive.time = 0.1
+        stutterPad.drive.value = 0
     elif dur == 295:
         kickLFast.play(0)
     elif dur == 300:
@@ -239,6 +244,8 @@ def timeLine():
         douxPadGranule.generate(2, 0.008)
         douxPadGranuleAccu1.generate(2, 0.007)
         douxPadGranuleAccu2.generate(2, 0.008)
+        stutterPad.drive.time = 25
+        stutterPad.drive.value = 50
     elif dur == 340:
         voxyLine.play(0)
         voxyLine.fade(1.2, 20)
@@ -252,9 +259,6 @@ def timeLine():
         douxPadGranulepitchMod.play(0)
         douxPadGranuleAccu1pitchMod.play(0)
         douxPadGranuleAccu2pitchMod.play(0)
-        douxPadGranulepitchMod.generate(2, 0.004)
-        douxPadGranuleAccu1pitchMod.generate(3, 0.009)
-        douxPadGranuleAccu2pitchMod.generate(3, 0.01)
         douxPadGranulepitchMod.fade(1, 8)
         douxPadGranuleAccu1pitchMod.fade(1, 8)
         douxPadGranuleAccu2pitchMod.fade(1, 8)
@@ -266,10 +270,26 @@ def timeLine():
     elif dur == 365:
         kickCrazy.fade(0, 0.5)
         kickLFast.fade(0, 0.1)
+        douxPadGranulepitchMod.fade(0, 0.1)
+        douxPadGranuleAccu1pitchMod.fade(0, 0.1)
+        douxPadGranuleAccu2pitchMod.fade(0, 0.1)
     elif dur == 370:
         kickLFast.stop()
         kickCrazy.stop()
         arpCrazy.stop()
+        douxPadGranulepitchMod.stop()
+        douxPadGranuleAccu1pitchMod.stop()
+        douxPadGranuleAccu2pitchMod.stop()
+    elif dur == 375:
+        douxPadGranulepitchMod.play(0, gen=False)
+        douxPadGranuleAccu1pitchMod.play(0, gen=False)
+        douxPadGranuleAccu2pitchMod.play(0, gen=False)
+        douxPadGranulepitchMod.generate(2, 0.004)
+        douxPadGranuleAccu1pitchMod.generate(3, 0.009)
+        douxPadGranuleAccu2pitchMod.generate(3, 0.01)
+        douxPadGranulepitchMod.fade(1, 30)
+        douxPadGranuleAccu1pitchMod.fade(1, 30)
+        douxPadGranuleAccu2pitchMod.fade(1, 30)
     elif dur == 380:
         stutterPad.stop()
         douxPadGranule.stop()
@@ -279,22 +299,33 @@ def timeLine():
         voxyLine.fade(0, 20)
     elif dur == 450:
         voxyLine.stop()
+        douxPadGranulepitchMod.generate(8, 0.004)
+        douxPadGranuleAccu1pitchMod.generate(2, 0.09)
+        douxPadGranuleAccu2pitchMod.generate(5, 0.001)
+    elif dur == 455:
+        voxyLine.play(gen=False)
+        voxyLine.generate(8, 0.12)
+        voxyLine.fade(1.5, 30)
     elif dur == 500:
         transparent.play(0)
         transparentPad.play(0)
         transparentGranule.play(0)
-        transparent.fade(0.2, 10)
-        transparentPad.fade(0.4, 10)
+        transparent.fade(0.1, 10)
+        transparentPad.fade(0.6, 10)
         transparentGranule.fade(0.8, 10)
-    elif dur == 550:
-        transparent.fade(0.8, 0.1)
-        transparent.fade(0.2, 1)
+        douxPadGranulepitchMod.generate(5, 0.0004)
+        douxPadGranuleAccu1pitchMod.generate(5, 0.0009)
+        douxPadGranuleAccu2pitchMod.generate(5, 0.0001)
+    elif dur == 530:
+        voxyLine.fade(0, 20)
+        transparent.fade(1.2 , 0.1)
+        transparent.fade(0.2, 0.5)
         transparentPad.fade(0, 20)
         transparentGranule.fade(0, 15)
         douxPadGranulepitchMod.fade(0, 15)
         douxPadGranuleAccu1pitchMod.fade(0, 15)
         douxPadGranuleAccu2pitchMod.fade(0, 15)
-    elif dur == 555:
+    elif dur == 535:
         transparent.fade(0, 10)
 
 
@@ -303,7 +334,7 @@ def pp(address, *args):
     BPM = args[1]
     FLUX.value = args[0]/1024
     #print(BPM)
-    print(FLUX.value)
+    #print(FLUX.value)
 
 r = OscDataReceive(9001, "/BPM", pp)
 sender = OscDataSend("iffffff", 18032, '/spat/serv')
@@ -314,7 +345,7 @@ def checkBPM():
     FLUX.time = BPS
     globalM.time = BPS
     print(BPM)
-    #print(FLUX.value)
+    print(FLUX.value)
 
 globalM = Metro(time=BPS)
 checkBPM = TrigFunc(globalM, checkBPM)
@@ -340,7 +371,7 @@ spatRMix = Mix(douxPadGranuleAccu2.sig()+douxPadGranuleAccu2pitchMod.sig(), mul=
 voxMix = Mix(transparent.sig()+transparentPad.sig()+transparentGranule.sig(), mul=0.2).out(6)
 
 subSplit = EQ(padComp+padMix+sparkMix+noiseMix+spatLMix+spatRMix+voxMix, freq=80, q=1, type=1, mul=0.1)
-subMix = Mix(subSplit, mul=0.1).out(7)
+subMix = Mix(subSplit, mul=0.15).out(7)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #p1 = Phasor(freq=0.01, mul=pi, add=0)
 
