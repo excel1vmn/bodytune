@@ -47,6 +47,8 @@ class Pad:
 
     def play(self, amp=0.8):
         self.panMul.value = amp
+        self.fFreq.play()
+        self.fQ.play()
         self.pos.play()
         self.dns.play()
         self.pit.play()
@@ -58,6 +60,8 @@ class Pad:
 
     def stop(self):
         self.panMul.value = 0
+        self.fFreq.stop()
+        self.fQ.stop()
         self.pos.stop()
         self.dns.stop()
         self.pit.stop()

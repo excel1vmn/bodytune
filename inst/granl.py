@@ -31,6 +31,7 @@ class Granl:
 
     def play(self, amp=0.8):
         self.pan.mul = amp
+        self.snd.play()
         self.pos.play()
         self.dur.play()
         self.g.play()
@@ -42,6 +43,7 @@ class Granl:
 
     def stop(self):
         self.pan.mul = 0
+        self.snd.stop()
         self.pos.stop()
         self.dur.stop()
         self.g.stop()
@@ -49,7 +51,7 @@ class Granl:
         self.comp.stop()
         self.pan.stop()
         self.pat.stop()
-        self.pat2.stop()   
+        self.pat2.stop()
 
     def fadeIn(self, value, time, init=0):
         self.pan.mul = SigTo(value, time, init)

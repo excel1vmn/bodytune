@@ -31,6 +31,7 @@ class Drums:
 
     def play(self, amp=0.8):
         self.panMul.value = amp
+        self.sMul.play()
         self.beat.play()
         self.tr2.play()
         self.sf.play()
@@ -42,6 +43,7 @@ class Drums:
 
     def stop(self):
         self.panMul.value = 0
+        self.sMul.stop()
         self.beat.stop()
         self.tr2.stop()
         self.sf.stop()

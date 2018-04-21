@@ -27,19 +27,17 @@ class ManglerExpMulti:
         self.amp = OscTrig(self.env, self.beat, self.tab.getRate())
         self.osc = OscTrig(self.tab, self.beat, self.tab.getRate(), interp=4, mul=2)
         '''
-        self.crossFade1 = SigTo(0, time=0.1)
+        self.crossFade1 = SigTo(1, time=0.1)
         self.crossFade2 = SigTo(0, time=0.1)
         self.amp1 = OscTrig(self.env, self.beat, self.tab[self.whatTab].getRate()*transp)
         self.osc1 = OscTrig(self.tab[self.whatTab], self.beat, self.tab[self.whatTab].getRate()*transp, interp=4, mul=self.crossFade1)
         self.amp2 = OscTrig(self.env, self.beat, self.tab[self.whatTab].getRate()*transp)
         self.osc2 = OscTrig(self.tab[self.whatTab], self.beat, self.tab[self.whatTab].getRate()*transp, interp=4, mul=self.crossFade2)
         self.fol = Follower(self.osc1+self.osc2, freq=20)
-        self.dist = Disto(self.osc1+self.osc2, drive=self.drive*self.fol, slope=2)
-        #self.filt = Biquad(self.osc1+self.osc2, 30+self.fol*40, q=2, type=1)
-        #self.bp = ButBP(self.dist, freq=self.fFreq, q=4)
-        self.lp = Biquad(self.dist, freq=1000, q=2, type=0, mul=newyork)
-        self.hp = Biquad(self.dist+self.lp, freq=self.fFreq, type=1, q=2)
-        self.clip = Clip(self.hp, max=1.5)
+        self.dist = Disto(self.osc1+self.osc2, drive=self.drive*self.fol, slope=2, mul=0.8)
+        self.lp = ButLP(self.osc1+self.osc2, freq=2000, mul=newyork-0.1)
+        self.hp = Biquad(self.osc1+self.osc2+self.lp+self.drive, freq=self.fFreq, type=1, q=1)
+        self.clip = Clip(self.hp, max=3)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
         self.pan = Pan(self.clip, outs=2, mul=self.panPow)
@@ -58,14 +56,14 @@ class ManglerExpMulti:
 
     def play(self, amp=0.8, gen=True):
         self.panMul.value = amp
+        self.drive.play()
+        self.fFreq.play()
         self.amp1.play()
         self.osc1.play()
         self.amp2.play()
         self.osc2.play()
         self.fol.play()
         self.dist.play()
-        #self.filt.play()
-        #self.bp.play()
         self.lp.play()
         self.panMul.play()
         self.panPow.play()
@@ -75,14 +73,14 @@ class ManglerExpMulti:
 
     def stop(self):
         self.panMul.value = 0
+        self.drive.stop()
+        self.fFreq.stop()
         self.amp1.stop()
         self.osc1.stop()
         self.amp2.stop()
         self.osc2.stop()
         self.fol.stop()
         self.dist.stop()
-        #self.filt.stop()
-        #self.bp.stop()
         self.lp.stop()
         self.panMul.stop()
         self.panPow.stop()
@@ -96,8 +94,8 @@ class ManglerExpMulti:
     def sideChain(self, str=1, dur=0.2):
         self.mTrig = Metro(time=self.tm).play()
         self.tEnv = TrigEnv(self.mTrig, self.env)
-        self.clip = Clip(self.tEnv, self.pan.mul-str, 1)
-        self.pan.mul = self.clip
+        self.sideClip = Clip(self.tEnv, self.pan.mul-str, 1)
+        self.panMul.value = self.clip
 
     def new(self):
         self.wantsnew = True
