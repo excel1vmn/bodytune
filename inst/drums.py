@@ -3,19 +3,20 @@ import random
 import math
 
 class Drums:
-    def __init__(self, path, TAPS, TM, w1=90, w2=50, w3=15, transp=1, freq=50, type=1, sMul=1, envTable=[(0,0),(100,1),(8000,0.7),(8050,0),(8190,0)]):
+    def __init__(self, path, TAPS, TM, w1=90, w2=50, w3=15, transp=1, freq=50, type=1, sMul=1, envTable=[(0,0),(100,1),(8000,0.7),(8050,0),(8190,0)], pitchTable=[(0,1),(8190,1)]):
         self.tm = TM
         self.taps = TAPS
         self.transp = transp
         self.freq = freq
         self.sMul = Sig(value=sMul)
         self.t = CosTable(envTable)
-        #self.pitchEnv = CosTable([(0,0), (50,1), (150,.25), (300, 0), (8191,0)])
+        self.pitchEnv = CosTable(pitchTable)
         self.tab = SndTable(path)
         self.beat = Beat(time=self.tm/self.sMul, taps=self.taps, w1=w1, w2=w2, w3=w3, poly=1)
         self.tr2 = TrigEnv(self.beat, table=self.t, dur=self.beat['dur'], mul=self.beat['amp'])
-        self.sf = OscTrig(self.tab, self.beat, self.tab.getRate()*self.transp, phase=0, interp=2, mul=1)
-        self.filt = Biquad(self.sf, freq=self.freq, q=3, type=type, mul=self.tr2)
+        self.pit = TrigEnv(self.beat, table=self.pitchEnv, dur=self.beat['dur'])
+        self.sf = OscTrig(self.tab, self.beat, self.tab.getRate()*self.transp*self.pit, phase=0, interp=2, mul=1)
+        self.filt = Biquad(self.sf, freq=self.freq, q=4, type=type, mul=self.tr2)
         self.panMul = SigTo(0)
         self.panPow = Pow(self.panMul, 3)
         self.pan = Pan(self.filt, outs=2, mul=self.panPow)
