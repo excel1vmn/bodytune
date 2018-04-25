@@ -423,7 +423,7 @@ spatRMix = Mix(douxPadGranuleAccu2.sig()+douxPadGranuleAccu2pitchMod.sig()+stutt
 voxMix = Mix(transparent.sig()+transparentPad.sig()+transparentGranule.sig(), mul=0.4).out(6)
 
 subSplit = EQ(padMix+percMix+sparkMix+noiseMix+spatLMix+spatRMix+voxMix, freq=80, q=1, type=1, mul=1)
-subMix = Mix(subSplit, mul=0.5).mix(2).out(7)
+subMix = Mix(subSplit, mul=0.3).mix(2).out(7)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 '''
