@@ -35,6 +35,7 @@ path16 = 'sndsSB/boaing.wav'
 path17 = 'snds/baseballmajeur_s.aif'
 path18 = 'sndsSB/padStutter.aif'
 path19 = 'sndsSB/Nprime.aif'
+path20 = 'sndsSB/kickBounce.aif'
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Variables globales
@@ -73,6 +74,7 @@ stutterPadR = ManglerExpMulti([path18,path19], TAPS, BPS, drive=2, transp=1.8, s
 
 arpCrazy = Mangler(path4, TAPS, BPS*0.25, segments=5, segdur=0.165, w1=100, w2=20, w3=70, poly=2)
 kickCrazy = Mangler(path10, TAPS, BPS, transp=2, segments=7, segdur=0.165, w1=100, w2=20, w3=70, poly=4)
+kickBounce = ManglerExpMulti([path20], TAPS, BPS, transp=0.8, segments=5, segdur=0.7, w1=100, w2=0, w3=0, poly=4, newyork=1, fFreq=100)
 
 
 granuleAccu = Drums(path9, TAPS, BPS, w1=80, w2=50, w3=60, transp=FLUX*4, sMul=8, pitchTable=[(0,1),(100,10),(1500,1),(8190,0.1)])
@@ -409,7 +411,7 @@ padComp = Compress(douxPad.sig()+douxPadGranule.sig()+lowPad.sig()+douxPadGranul
 
 padMix = Mix(padComp, mul=0.4).out(0)
 
-percComp = Compress(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()+kickLFast.sig(), thresh=-20, ratio=6, risetime=.01, falltime=.2, knee=0.5)
+percComp = Compress(kickH.sig()+kickL.sig()+granules.sig()+kickCrazy.sig()+kickLFast.sig()+kickBounce.sig(), thresh=-20, ratio=6, risetime=.01, falltime=.2, knee=0.5)
 percMix = Mix(percComp, mul=0.6).out(1)
 
 sparkMix = Mix(arpCrazy.sig()+voxyLine.sig()+grosNoiseTop.sig()).out(2)
@@ -430,7 +432,7 @@ subMix = Mix(subSplit, mul=0.3).mix(2).out(7)
 1. (i) The source number starting at 0.
 2. (f) The azimuth value between 0 and pi*2.
 3. (f) The elevation value between 0 and pi.
-- 0 = top vertex of the dome.
+# - 0 = top vertex of the dome.
 - pi/2 = center of the sphere (the height of the lower circle of a half-sphere). - pi = lower vertex of the dome (under the floor).
 4. (f) The span in azimuth between 0 and 2.
 5. (f) The span in elevation between 0 and 0.5.
